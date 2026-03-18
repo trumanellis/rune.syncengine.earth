@@ -1,5 +1,5 @@
 import { RUNES } from './runes';
-import { addRune, getState, subscribe, setRuneStyle, RUNE_STYLES } from './state';
+import { addRune, getState, subscribe, setRuneStyle, setRuneColor, RUNE_STYLES } from './state';
 import type { RuneStyleId } from './state';
 
 export function initSidebarLeft(container: HTMLElement): void {
@@ -32,6 +32,55 @@ export function initSidebarLeft(container: HTMLElement): void {
   fontRow.appendChild(fontSelect);
   container.appendChild(fontRow);
 
+  // Color selector row
+  const colorRow = document.createElement('div');
+  colorRow.className = 'font-selector';
+  colorRow.style.gap = '8px';
+
+  const colorLabel = document.createElement('label');
+  colorLabel.textContent = 'Color:';
+  colorLabel.className = 'font-selector-label';
+  colorRow.appendChild(colorLabel);
+
+  const swatchContainer = document.createElement('div');
+  swatchContainer.style.cssText = 'display:flex;align-items:center;gap:6px;flex:1;';
+
+  function createSwatch(color: string, title: string): HTMLButtonElement {
+    const btn = document.createElement('button');
+    btn.title = title;
+    btn.style.cssText = `
+      width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+      border: 2px solid var(--border-default); background: ${color};
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      flex-shrink: 0;
+    `;
+    btn.addEventListener('mouseenter', () => { btn.style.borderColor = 'var(--border-strong)'; });
+    btn.addEventListener('mouseleave', () => { btn.style.borderColor = getState().runeColor === color ? 'var(--gold)' : 'var(--border-default)'; });
+    btn.addEventListener('click', () => { setRuneColor(color); });
+    return btn;
+  }
+
+  const whiteSwatch = createSwatch('#ffffff', 'White');
+  const blackSwatch = createSwatch('#000000', 'Black');
+
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = getState().runeColor;
+  colorInput.title = 'Custom color';
+  colorInput.style.cssText = `
+    width: 28px; height: 28px; border: none; padding: 0;
+    background: none; cursor: pointer; border-radius: 50%;
+    flex-shrink: 0;
+  `;
+  colorInput.addEventListener('input', () => { setRuneColor(colorInput.value); });
+
+  swatchContainer.appendChild(whiteSwatch);
+  swatchContainer.appendChild(blackSwatch);
+  swatchContainer.appendChild(colorInput);
+  colorRow.appendChild(swatchContainer);
+
+  container.insertBefore(colorRow, fontRow.nextSibling);
+
   // Rune list
   const list = document.createElement('div');
   list.className = 'rune-list';
@@ -44,6 +93,11 @@ export function initSidebarLeft(container: HTMLElement): void {
 
     // Keep select in sync
     fontSelect.value = state.runeStyle;
+
+    // Keep color UI in sync
+    colorInput.value = state.runeColor;
+    whiteSwatch.style.borderColor = state.runeColor === '#ffffff' ? 'var(--gold)' : 'var(--border-default)';
+    blackSwatch.style.borderColor = state.runeColor === '#000000' ? 'var(--gold)' : 'var(--border-default)';
 
     for (const rune of RUNES) {
       const entry = document.createElement('div');
@@ -59,7 +113,7 @@ export function initSidebarLeft(container: HTMLElement): void {
       if (styleDef.mode === 'path') {
         const pathEl = document.createElementNS(svgNS, 'path');
         pathEl.setAttribute('d', rune.path);
-        pathEl.style.stroke = 'var(--gold)';
+        pathEl.style.stroke = state.runeColor;
         pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
         pathEl.setAttribute('stroke-linecap', 'round');
         pathEl.setAttribute('stroke-linejoin', 'round');
@@ -73,8 +127,8 @@ export function initSidebarLeft(container: HTMLElement): void {
         textEl.setAttribute('dominant-baseline', 'central');
         textEl.setAttribute('font-size', '90');
         textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-        textEl.style.fill = styleDef.fill;
-        textEl.style.stroke = styleDef.stroke;
+        textEl.style.fill = styleDef.fill === 'none' ? 'none' : state.runeColor;
+        textEl.style.stroke = styleDef.stroke === 'none' ? 'none' : state.runeColor;
         textEl.setAttribute('stroke-width', styleDef.strokeWidth);
         textEl.textContent = rune.letter;
         svg.appendChild(textEl);

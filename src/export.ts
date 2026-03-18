@@ -139,23 +139,49 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
 </div>`
       : '';
 
-    // 9. Build the self-contained HTML string
+    // 9. Grab skin state and embedded theme CSS
+    const currentSkin = document.documentElement.getAttribute('data-skin') || 'jewels';
+    const skinStyleEl = document.getElementById('te-skins');
+    const sharedStyleEl = document.getElementById('te-shared');
+    const skinCSS = skinStyleEl ? skinStyleEl.textContent || '' : '';
+    const sharedCSS = sharedStyleEl ? sharedStyleEl.textContent || '' : '';
+
+    // 10. Build the self-contained HTML string
     const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-skin="${currentSkin}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bind Rune Export</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Raleway:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>${sharedCSS}</style>
+<style>${skinCSS}</style>
 <style>
+  /* Bridge: BindRune CSS vars → theme engine tokens */
+  :root {
+    --gold: var(--t-ac);
+    --gold-dim: var(--t-a2);
+    --gold-bright: var(--t-ac);
+    --cyan: var(--t-a2);
+    --text-primary: var(--t-tx);
+    --text-secondary: var(--t-t2);
+    --text-muted: var(--t-mt);
+    --bg-deepest: var(--t-bg);
+    --bg-dark: var(--t-sf);
+    --bg-panel: var(--t-cd);
+    --border-default: var(--t-bd);
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     height: 100%;
     overflow: hidden;
   }
   body {
-    background: #06060e;
-    color: rgba(255,255,255,0.9);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--t-bg);
+    color: var(--t-tx);
+    font-family: var(--s-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -163,11 +189,13 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     padding: 32px 77px;
   }
   .intention {
-    color: #6bcfff;
+    color: var(--t-ac);
+    font-family: var(--s-display, inherit);
     font-style: italic;
     font-size: 24px;
     text-align: center;
     line-height: 1.4;
+    white-space: pre-line;
     flex-shrink: 0;
     margin-bottom: 16px;
   }
@@ -192,12 +220,12 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
   .rune-list h2 {
     font-size: 16px;
     font-weight: 600;
-    color: #6a6580;
+    color: var(--t-t2);
     margin-bottom: 12px;
   }
   .rune-entry {
     font-size: 14px;
-    color: rgba(255,255,255,0.9);
+    color: var(--t-tx);
     margin-bottom: 6px;
     line-height: 1.4;
   }
@@ -210,11 +238,11 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
   </div>
   ${runeListSection}
   <button id="save-png" style="
-    position: fixed; top: 16px; right: 16px;
-    background: #18183a; color: rgba(255,255,255,0.9); border: 1px solid rgba(180,170,220,0.12);
-    padding: 8px 16px; border-radius: 14px; cursor: pointer;
+    position: fixed; bottom: 16px; right: 16px;
+    background: var(--t-hv); color: var(--t-tx); border: 1px solid var(--t-bd);
+    padding: 8px 16px; border-radius: var(--s-radius, 14px); cursor: pointer;
     font-size: 14px; font-family: inherit; z-index: 100;
-  " onmouseover="this.style.background='#24245a'" onmouseout="this.style.background='#18183a'">
+  " onmouseover="this.style.background='var(--t-cd)'" onmouseout="this.style.background='var(--t-hv)'">
     Save PNG
   </button>
   <script>
@@ -332,7 +360,7 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
 </body>
 </html>`;
 
-    // 10. Open in new tab
+    // 11. Open in new tab
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');

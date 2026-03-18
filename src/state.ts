@@ -35,6 +35,7 @@ export interface AppState {
   runeStyle: RuneStyleId;
   runeOffsets: Record<string, RuneOffset>;  // keyed by runeId
   intention: string;
+  runeColor: string;
 }
 
 // --- Persistence ---
@@ -88,6 +89,7 @@ interface PersistedState {
   activeLayerId: string | null;
   runeStyle: RuneStyleId;
   intention: string;
+  runeColor: string;
 }
 
 function loadPersistedState(): Partial<PersistedState> {
@@ -112,6 +114,7 @@ function saveState(): void {
       activeLayerId: state.activeLayerId,
       runeStyle: state.runeStyle,
       intention: state.intention,
+      runeColor: state.runeColor,
     };
     localStorage.setItem(STATE_KEY, JSON.stringify(persisted));
   } catch { /* ignore */ }
@@ -129,6 +132,7 @@ let state: AppState = {
   runeStyle: persisted.runeStyle ?? 'geometric-filled',
   runeOffsets: loadOffsets(),
   intention: persisted.intention ?? '',
+  runeColor: persisted.runeColor ?? '#8aad6e',
 };
 
 // --- Undo/Redo ---
@@ -278,6 +282,12 @@ export function setRuneStyle(styleId: RuneStyleId): void {
   notify();
 }
 
+export function setRuneColor(color: string): void {
+  pushUndo();
+  state = { ...state, runeColor: color };
+  notify();
+}
+
 export function setIntention(text: string): void {
   pushUndo();
   state = { ...state, intention: text };
@@ -343,6 +353,7 @@ export function resetAll(): void {
     runeStyle: 'geometric-filled',
     runeOffsets: { ...DEFAULT_OFFSETS },
     intention: '',
+    runeColor: '#8aad6e',
   };
   try {
     localStorage.removeItem(STATE_KEY);

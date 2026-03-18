@@ -126,10 +126,11 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       g.setAttribute('transform', buildTransform(layer.x, layer.y, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY, offset.dx, offset.dy));
 
       const styleDef = RUNE_STYLES.find(s => s.id === state.runeStyle) ?? RUNE_STYLES[0];
+      const runeColor = state.runeColor;
       if (styleDef.mode === 'path') {
         const pathEl = createEl('path') as SVGPathElement;
         pathEl.setAttribute('d', rune.path);
-        pathEl.style.stroke = 'var(--gold)';
+        pathEl.style.stroke = runeColor;
         pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
         pathEl.setAttribute('stroke-linecap', 'round');
         pathEl.setAttribute('stroke-linejoin', 'round');
@@ -143,8 +144,8 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         text.setAttribute('dominant-baseline', 'central');
         text.setAttribute('font-size', '112');
         text.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-        text.style.fill = styleDef.fill;
-        text.style.stroke = styleDef.stroke;
+        text.style.fill = styleDef.fill === 'none' ? 'none' : runeColor;
+        text.style.stroke = styleDef.stroke === 'none' ? 'none' : runeColor;
         text.setAttribute('stroke-width', styleDef.strokeWidth);
         text.textContent = rune.letter;
         g.appendChild(text);
