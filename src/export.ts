@@ -190,9 +190,9 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
   }
   .intention {
     color: var(--t-ac);
-    font-family: var(--s-display, inherit);
     font-style: italic;
-    font-size: 24px;
+    text-transform: none;
+    font-size: 16px;
     text-align: center;
     line-height: 1.4;
     white-space: pre-line;
