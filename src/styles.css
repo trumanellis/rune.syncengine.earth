@@ -299,6 +299,12 @@ body {
   border-color: var(--gold-dim);
 }
 
+.toolbar-btn.is-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: default;
+}
+
 /* ============================================================
    TOOLBAR BUTTONS
    ============================================================ */
@@ -781,6 +787,45 @@ aside {
    RIGHT SIDEBAR — LAYERS PANEL
    ============================================================ */
 
+/* Intention bar */
+#intention-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+#intention-input {
+  width: 100%;
+  max-width: 800px;
+  background: var(--bg-surface);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  color: var(--gold-bright);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#intention-input::placeholder {
+  color: var(--gold-dim);
+  font-style: italic;
+}
+
+#intention-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
 /* Layer list container */
 .layer-list {
   display: flex;
@@ -972,6 +1017,43 @@ aside {
   width: 13px;
   height: 13px;
   pointer-events: none;
+}
+
+/* Layer wrapper for collapsible inline props */
+.layer-wrapper {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.layer-wrapper .layer-entry {
+  border-bottom: none;
+}
+
+.layer-wrapper:last-child {
+  border-bottom: none;
+}
+
+/* Inline transform props (collapsed into each layer) */
+.layer-props-inline {
+  padding: 6px 10px 10px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
+  animation: fadeIn 120ms ease;
+}
+
+.layer-props-inline .prop-row {
+  margin-bottom: 0;
+}
+
+.layer-props-inline .prop-label {
+  min-width: 36px;
+  font-size: 10px;
+}
+
+.layer-props-inline .prop-input {
+  width: 100%;
 }
 
 /* Layer drop indicator (for drag-and-drop reordering) */

@@ -1,7 +1,8 @@
-import { getState, subscribe, selectLayer, moveLayer, RUNE_STYLES } from './state';
+import { getState, subscribe, selectLayer, moveLayer, RUNE_STYLES, getRuneOffset } from './state';
 import { RUNES } from './runes';
 import type { RuneDefinition } from './runes';
 import { buildTransform, snapToGrid } from './transforms';
+import { showContextMenu } from './context-menu';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -11,7 +12,7 @@ function createEl(tag: string): SVGElement {
 
 export function initCanvas(container: HTMLElement): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
-  svg.setAttribute('viewBox', '0 0 500 600');
+  svg.setAttribute('viewBox', '-250 -300 500 600');
   svg.setAttribute('width', '100%');
   svg.setAttribute('height', '100%');
   svg.id = 'canvas-svg';
@@ -50,11 +51,37 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
   // Grid rect
   const gridRect = createEl('rect') as SVGRectElement;
-  gridRect.setAttribute('width', '500');
-  gridRect.setAttribute('height', '600');
+  gridRect.setAttribute('x', '-750');
+  gridRect.setAttribute('y', '-900');
+  gridRect.setAttribute('width', '1500');
+  gridRect.setAttribute('height', '1800');
   gridRect.setAttribute('fill', 'url(#grid-pattern)');
   gridRect.classList.add('grid-line');
   svg.appendChild(gridRect);
+
+  // Coordinate axes
+  const axesGroup = createEl('g') as SVGGElement;
+  axesGroup.classList.add('grid-line');
+
+  const xAxis = createEl('line') as SVGLineElement;
+  xAxis.setAttribute('x1', '-2000');
+  xAxis.setAttribute('y1', '0');
+  xAxis.setAttribute('x2', '2000');
+  xAxis.setAttribute('y2', '0');
+  xAxis.setAttribute('stroke', '#3a4a6e');
+  xAxis.setAttribute('stroke-width', '1');
+
+  const yAxis = createEl('line') as SVGLineElement;
+  yAxis.setAttribute('x1', '0');
+  yAxis.setAttribute('y1', '-2000');
+  yAxis.setAttribute('x2', '0');
+  yAxis.setAttribute('y2', '2000');
+  yAxis.setAttribute('stroke', '#3a4a6e');
+  yAxis.setAttribute('stroke-width', '1');
+
+  axesGroup.appendChild(xAxis);
+  axesGroup.appendChild(yAxis);
+  svg.appendChild(axesGroup);
 
   // Rune layers group
   const runeLayersGroup = createEl('g') as SVGGElement;
@@ -74,6 +101,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
     // Toggle grid visibility
     gridRect.style.display = state.gridVisible ? '' : 'none';
+    axesGroup.style.display = state.gridVisible ? '' : 'none';
 
     // Clear rune layers
     while (runeLayersGroup.firstChild) {
@@ -87,13 +115,15 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
     }
 
     for (const layer of state.layers) {
+      if (!layer.visible) continue;
       const rune = runeMap.get(layer.runeId);
       if (!rune) continue;
 
       const g = createEl('g') as SVGGElement;
       g.classList.add('rune-layer');
       g.setAttribute('data-layer-id', layer.id);
-      g.setAttribute('transform', buildTransform(layer.x, layer.y, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY));
+      const offset = getRuneOffset(layer.runeId);
+      g.setAttribute('transform', buildTransform(layer.x, layer.y, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY, offset.dx, offset.dy));
 
       const styleDef = RUNE_STYLES.find(s => s.id === state.runeStyle) ?? RUNE_STYLES[0];
       if (styleDef.mode === 'path') {
@@ -108,9 +138,10 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       } else {
         const text = createEl('text') as SVGTextElement;
         text.setAttribute('x', '40');
-        text.setAttribute('y', '128');
+        text.setAttribute('y', '80');
         text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('font-size', '144');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('font-size', '112');
         text.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
         text.setAttribute('fill', styleDef.fill);
         text.setAttribute('stroke', styleDef.stroke);
@@ -141,10 +172,20 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         }
       });
 
+      // Right-click context menu
+      g.addEventListener('contextmenu', (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        selectLayer(layer.id);
+        showContextMenu(e.clientX, e.clientY, layer.id);
+      });
+
       // Drag interaction
       g.addEventListener('mousedown', (e: MouseEvent) => {
         e.preventDefault();
         (g as any).__didDrag = false;
+        // Auto-select on drag start
+        selectLayer(layer.id);
 
         const startScreenX = e.clientX;
         const startScreenY = e.clientY;
@@ -175,7 +216,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
           const newX = snapToGrid(startLayerX + dx, state.gridSize);
           const newY = snapToGrid(startLayerY + dy, state.gridSize);
-          g.setAttribute('transform', buildTransform(newX, newY, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY));
+          g.setAttribute('transform', buildTransform(newX, newY, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY, offset.dx, offset.dy));
         }
 
         function onMouseUp(me: MouseEvent) {
@@ -200,6 +241,87 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       runeLayersGroup.appendChild(g);
     }
   }
+
+  // --- Zoom & Pan via viewBox ---
+  const DEFAULT_VB = { x: -250, y: -300, w: 500, h: 600 };
+  let vbX = DEFAULT_VB.x;
+  let vbY = DEFAULT_VB.y;
+  let vbW = DEFAULT_VB.w;
+  let vbH = DEFAULT_VB.h;
+
+  // Zoom controls UI
+  const controls = document.createElement('div');
+  controls.className = 'canvas-controls';
+
+  const zoomLabel = document.createElement('span');
+  zoomLabel.className = 'canvas-zoom-label';
+  zoomLabel.textContent = '100%';
+
+  const fitBtn = document.createElement('button');
+  fitBtn.className = 'btn btn-ghost btn-icon';
+  fitBtn.textContent = 'Fit';
+  fitBtn.title = 'Reset zoom (0)';
+  fitBtn.addEventListener('click', resetView);
+
+  controls.appendChild(zoomLabel);
+  controls.appendChild(fitBtn);
+  container.appendChild(controls);
+
+  function updateZoomLabel() {
+    const zoom = Math.round((DEFAULT_VB.w / vbW) * 100);
+    zoomLabel.textContent = `${zoom}%`;
+  }
+
+  function resetView() {
+    vbX = DEFAULT_VB.x;
+    vbY = DEFAULT_VB.y;
+    vbW = DEFAULT_VB.w;
+    vbH = DEFAULT_VB.h;
+    updateViewBox();
+  }
+
+  // Expose resetView for keyboard shortcut
+  (container as any).__resetView = resetView;
+
+  function updateViewBox() {
+    svg.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+    // Update grid rect to cover visible area with margin
+    gridRect.setAttribute('x', String(vbX - vbW));
+    gridRect.setAttribute('y', String(vbY - vbH));
+    gridRect.setAttribute('width', String(vbW * 3));
+    gridRect.setAttribute('height', String(vbH * 3));
+    updateZoomLabel();
+  }
+
+  svg.addEventListener('wheel', (e: WheelEvent) => {
+    e.preventDefault();
+
+    if (e.ctrlKey || e.metaKey) {
+      // Pinch-to-zoom (trackpad) or Ctrl+scroll
+      const zoomFactor = 1 - e.deltaY * 0.01;
+      const clampedFactor = Math.max(0.9, Math.min(1.1, zoomFactor));
+
+      // Zoom toward cursor position
+      const rect = svg.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) / rect.width;
+      const my = (e.clientY - rect.top) / rect.height;
+
+      const newW = Math.max(20, Math.min(4000, vbW / clampedFactor));
+      const newH = Math.max(24, Math.min(4800, vbH / clampedFactor));
+
+      vbX += (vbW - newW) * mx;
+      vbY += (vbH - newH) * my;
+      vbW = newW;
+      vbH = newH;
+    } else {
+      // Two-finger pan
+      const panScale = vbW / svg.getBoundingClientRect().width;
+      vbX += e.deltaX * panScale;
+      vbY += e.deltaY * panScale;
+    }
+
+    updateViewBox();
+  }, { passive: false });
 
   subscribe(render);
   render();

@@ -1,3 +1,5 @@
+import { showToast } from './toast';
+
 export function exportPNG(svgElement: SVGSVGElement): void {
   try {
     // 1. Deep clone the SVG element
@@ -91,6 +93,8 @@ export function exportPNG(svgElement: SVGSVGElement): void {
           document.body.appendChild(downloadLink);
           downloadLink.click();
           document.body.removeChild(downloadLink);
+
+          showToast('Exported bindrune.png', 'success');
 
           // Clean up: revoke URLs
           URL.revokeObjectURL(pngUrl);

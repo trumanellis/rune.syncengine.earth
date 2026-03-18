@@ -3,7 +3,7 @@ import { initCanvas } from './canvas';
 import { initSidebarLeft } from './sidebar-left';
 import { initSidebarRight } from './sidebar-right';
 import { exportPNG } from './export';
-import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer } from './state';
+import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll } from './state';
 import { snapRotation, snapScale } from './transforms';
 
 // Initialize components
@@ -11,6 +11,40 @@ const sidebarLeftEl = document.getElementById('sidebar-left') as HTMLElement;
 const canvasContainerEl = document.getElementById('canvas-container') as HTMLElement;
 const sidebarRightEl = document.getElementById('sidebar-right') as HTMLElement;
 const toolbarEl = document.getElementById('toolbar') as HTMLElement;
+
+// Intention bar with debounced undo
+const intentionInput = document.getElementById('intention-input') as HTMLTextAreaElement;
+intentionInput.value = getState().intention;
+function autoResizeIntention() {
+  intentionInput.style.height = 'auto';
+  intentionInput.style.height = intentionInput.scrollHeight + 'px';
+}
+let intentionUndoTimer: ReturnType<typeof setTimeout> | null = null;
+let intentionUndoPushed = false;
+function commitIntentionUndo() {
+  if (!intentionUndoPushed) {
+    pushUndo();
+    intentionUndoPushed = true;
+  }
+}
+intentionInput.addEventListener('input', () => {
+  if (!intentionUndoPushed) {
+    // Push undo snapshot before the first keystroke of this editing session
+    commitIntentionUndo();
+  }
+  setIntentionQuiet(intentionInput.value);
+  autoResizeIntention();
+  // Reset idle timer
+  if (intentionUndoTimer) clearTimeout(intentionUndoTimer);
+  intentionUndoTimer = setTimeout(() => {
+    intentionUndoPushed = false;
+  }, 1000);
+});
+intentionInput.addEventListener('blur', () => {
+  if (intentionUndoTimer) clearTimeout(intentionUndoTimer);
+  intentionUndoPushed = false;
+});
+autoResizeIntention();
 
 initSidebarLeft(sidebarLeftEl);
 const svgElement = initCanvas(canvasContainerEl);
@@ -86,17 +120,56 @@ const buttons: { label: string; title: string; action: () => void }[] = [
       removeLayer(layer.id);
     },
   },
+  {
+    label: '🔄 Reset',
+    title: 'Clear all layers and start fresh',
+    action: () => {
+      if (confirm('Clear all layers and start from scratch?')) {
+        resetAll();
+      }
+    },
+  },
 ];
 
+// Indices of buttons that require an active layer
+const requiresLayer = [0, 1, 2, 3, 4, 7]; // Rotate, Mirror X, Mirror Y, Scale Up, Scale Down, Delete
+
 // Build toolbar
-for (const { label, title, action } of buttons) {
+const toolbarButtons: HTMLButtonElement[] = [];
+for (let i = 0; i < buttons.length; i++) {
+  const { label, title, action } = buttons[i];
   const btn = document.createElement('button');
   btn.className = 'toolbar-btn';
   btn.title = title;
   btn.textContent = label;
   btn.addEventListener('click', action);
   toolbarEl.appendChild(btn);
+  toolbarButtons.push(btn);
 }
+
+// Update disabled states on state change
+subscribe(() => {
+  const hasActive = !!getActiveLayer();
+  for (const idx of requiresLayer) {
+    const btn = toolbarButtons[idx];
+    if (!btn) continue;
+    if (hasActive) {
+      btn.classList.remove('is-disabled');
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+    } else {
+      btn.classList.add('is-disabled');
+      btn.style.opacity = '0.4';
+      btn.style.pointerEvents = 'none';
+    }
+  }
+  // Keep intention input in sync (e.g. after undo/redo)
+  const currentIntention = getState().intention;
+  if (intentionInput.value !== currentIntention) {
+    intentionInput.value = currentIntention;
+    autoResizeIntention();
+  }
+});
 
 // Keyboard shortcuts
 function isInputFocused(): boolean {
@@ -108,6 +181,48 @@ let clipboard: string | null = null;
 
 document.addEventListener('keydown', (e: KeyboardEvent) => {
   if (isInputFocused()) return;
+
+  // Shift+Arrow: nudge per-rune pixel offset
+  if (e.shiftKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    const layer = getActiveLayer();
+    if (!layer) return;
+    e.preventDefault();
+    const step = 0.2;
+    switch (e.key) {
+      case 'ArrowLeft':  nudgeRuneOffset(layer.runeId, -step, 0); break;
+      case 'ArrowRight': nudgeRuneOffset(layer.runeId, step, 0); break;
+      case 'ArrowUp':    nudgeRuneOffset(layer.runeId, 0, -step); break;
+      case 'ArrowDown':  nudgeRuneOffset(layer.runeId, 0, step); break;
+    }
+    return;
+  }
+
+  // Plain Arrow keys: move selected layer by grid unit
+  if (!e.shiftKey && !e.ctrlKey && !e.metaKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    const layer = getActiveLayer();
+    if (!layer) return;
+    e.preventDefault();
+    const gridSize = getState().gridSize;
+    switch (e.key) {
+      case 'ArrowLeft':  moveLayer(layer.id, layer.x - gridSize, layer.y); break;
+      case 'ArrowRight': moveLayer(layer.id, layer.x + gridSize, layer.y); break;
+      case 'ArrowUp':    moveLayer(layer.id, layer.x, layer.y - gridSize); break;
+      case 'ArrowDown':  moveLayer(layer.id, layer.x, layer.y + gridSize); break;
+    }
+    return;
+  }
+
+  // Undo/Redo
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    undo();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'z' && e.shiftKey || e.key === 'y')) {
+    e.preventDefault();
+    redo();
+    return;
+  }
 
   // Copy/Paste with Ctrl/Cmd
   if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
@@ -123,6 +238,14 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
     e.preventDefault();
     const layer = getActiveLayer();
     if (layer) duplicateLayer(layer.id);
+    return;
+  }
+
+  // Shift+C: center rune horizontally
+  if (e.shiftKey && e.key === 'C') {
+    const layer = getActiveLayer();
+    if (!layer) return;
+    moveLayer(layer.id, 0, layer.y);
     return;
   }
 
@@ -169,5 +292,99 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
       removeLayer(layer.id);
       break;
     }
+    case '0': {
+      // Reset zoom
+      const resetView = (canvasContainerEl as any).__resetView;
+      if (resetView) resetView();
+      break;
+    }
+    case '?': {
+      toggleShortcutHelp();
+      break;
+    }
   }
 });
+
+// --- Shortcut Help Overlay ---
+let shortcutOverlay: HTMLElement | null = null;
+
+function toggleShortcutHelp(): void {
+  if (shortcutOverlay) {
+    shortcutOverlay.remove();
+    shortcutOverlay = null;
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.addEventListener('click', () => {
+    overlay.remove();
+    shortcutOverlay = null;
+  });
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.addEventListener('click', (e) => e.stopPropagation());
+
+  const title = document.createElement('div');
+  title.className = 'modal-title';
+  title.textContent = 'Keyboard Shortcuts';
+  modal.appendChild(title);
+
+  const shortcuts: [string, string][] = [
+    ['R', 'Rotate 45\u00B0'],
+    ['X', 'Mirror X'],
+    ['Y', 'Mirror Y'],
+    ['+/=', 'Scale up'],
+    ['\u2013', 'Scale down'],
+    ['G', 'Toggle grid'],
+    ['Del/Bksp', 'Delete layer'],
+    ['\u2190\u2191\u2192\u2193', 'Move layer (grid snap)'],
+    ['Shift+Arrow', 'Nudge pixel offset'],
+    ['Shift+C', 'Center layer'],
+    ['Ctrl+D', 'Duplicate layer'],
+    ['Ctrl+C/V', 'Copy / Paste layer'],
+    ['Ctrl+Z', 'Undo'],
+    ['Ctrl+Shift+Z', 'Redo'],
+    ['0', 'Reset zoom'],
+    ['?', 'This help'],
+  ];
+
+  const list = document.createElement('div');
+  list.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+
+  for (const [key, desc] of shortcuts) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;gap:16px;font-size:12px;';
+
+    const k = document.createElement('span');
+    k.style.cssText = 'font-family:var(--font-mono);color:var(--gold);min-width:100px;';
+    k.textContent = key;
+
+    const d = document.createElement('span');
+    d.style.cssText = 'color:var(--text-secondary);';
+    d.textContent = desc;
+
+    row.appendChild(k);
+    row.appendChild(d);
+    list.appendChild(row);
+  }
+
+  modal.appendChild(list);
+
+  const actions = document.createElement('div');
+  actions.className = 'modal-actions';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn btn-ghost';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', () => {
+    overlay.remove();
+    shortcutOverlay = null;
+  });
+  actions.appendChild(closeBtn);
+  modal.appendChild(actions);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  shortcutOverlay = overlay;
+}
