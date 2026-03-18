@@ -346,13 +346,28 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
       });
     }
 
-    // Download
-    canvas.toBlob(function(blob) {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'bindrune.png';
-      a.click();
-      URL.revokeObjectURL(a.href);
+    // Save with file picker (or fallback download)
+    canvas.toBlob(async function(blob) {
+      if (!blob) { btn.style.display = ''; return; }
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: 'bindrune.png',
+            types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } catch (e) {
+          if (e.name !== 'AbortError') console.error(e);
+        }
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'bindrune.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
       btn.style.display = '';
     }, 'image/png');
   });

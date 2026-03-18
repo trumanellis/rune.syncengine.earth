@@ -3,7 +3,7 @@ import { initCanvas } from './canvas';
 import { initSidebarLeft } from './sidebar-left';
 import { initSidebarRight } from './sidebar-right';
 import { exportHTML } from './export';
-import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll } from './state';
+import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll, exportProject, importProject } from './state';
 import { snapRotation, snapScale } from './transforms';
 
 // Initialize components
@@ -105,6 +105,20 @@ const buttons: { label: string; title: string; action: () => void }[] = [
     },
   },
   {
+    label: '💾 Save',
+    title: 'Save project to file',
+    action: () => {
+      exportProject();
+    },
+  },
+  {
+    label: '📂 Load',
+    title: 'Load project from file',
+    action: () => {
+      importProject();
+    },
+  },
+  {
     label: '↗ Export',
     title: 'Export as HTML page',
     action: () => {
@@ -132,7 +146,7 @@ const buttons: { label: string; title: string; action: () => void }[] = [
 ];
 
 // Indices of buttons that require an active layer
-const requiresLayer = [0, 1, 2, 3, 4, 7]; // Rotate, Mirror X, Mirror Y, Scale Up, Scale Down, Delete
+const requiresLayer = [0, 1, 2, 3, 4, 9]; // Rotate, Mirror X, Mirror Y, Scale Up, Scale Down, Delete
 
 // Build toolbar
 const toolbarButtons: HTMLButtonElement[] = [];

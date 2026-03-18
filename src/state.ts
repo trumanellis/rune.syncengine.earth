@@ -288,6 +288,78 @@ export function setRuneColor(color: string): void {
   notify();
 }
 
+export function exportProject(): void {
+  const data = {
+    version: 1,
+    layers: state.layers,
+    runeStyle: state.runeStyle,
+    intention: state.intention,
+    runeColor: state.runeColor,
+    runeOffsets: state.runeOffsets,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+
+  if ('showSaveFilePicker' in window) {
+    (async () => {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: 'bindrune.json',
+          types: [{ description: 'BindRune Project', accept: { 'application/json': ['.json'] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+      } catch (e: any) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    })();
+  } else {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bindrune.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+export function importProject(): void {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.addEventListener('change', () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        if (!data.layers || !Array.isArray(data.layers)) {
+          alert('Invalid BindRune file.');
+          return;
+        }
+        pushUndo();
+        state.layers = data.layers.map((l: any) => ({ ...l, visible: l.visible ?? true }));
+        state.activeLayerId = null;
+        state.runeStyle = data.runeStyle ?? 'geometric-filled';
+        state.intention = data.intention ?? '';
+        state.runeColor = data.runeColor ?? '#8aad6e';
+        if (data.runeOffsets) {
+          state.runeOffsets = { ...state.runeOffsets, ...data.runeOffsets };
+          saveOffsets(state.runeOffsets);
+        }
+        saveState();
+        notify();
+      } catch {
+        alert('Could not read BindRune file.');
+      }
+    };
+    reader.readAsText(file);
+  });
+  input.click();
+}
+
 export function setIntention(text: string): void {
   pushUndo();
   state = { ...state, intention: text };
