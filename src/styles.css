@@ -662,6 +662,10 @@ aside {
   background: var(--bg-deepest);
   position: relative;
   overflow: hidden;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Grid background — handled by SVG pattern in canvas.ts */
@@ -676,6 +680,7 @@ aside {
   max-height: 100%;
   /* Drop shadow for canvas boundary */
   filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.6));
+  touch-action: none;
 }
 
 /* Canvas boundary / artboard */
