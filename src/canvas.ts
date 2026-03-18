@@ -150,20 +150,6 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         g.appendChild(text);
       }
 
-      if (layer.id === state.activeLayerId) {
-        const sel = createEl('rect') as SVGRectElement;
-        sel.classList.add('selection-indicator');
-        sel.setAttribute('x', '-5');
-        sel.setAttribute('y', '-5');
-        sel.setAttribute('width', '90');
-        sel.setAttribute('height', '170');
-        sel.setAttribute('stroke', '#00d4ff');
-        sel.setAttribute('stroke-width', '1');
-        sel.setAttribute('fill', 'none');
-        sel.setAttribute('stroke-dasharray', '4 3');
-        g.appendChild(sel);
-      }
-
       // Click to select (guarded by didDrag)
       g.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -238,7 +224,26 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         document.addEventListener('mouseup', onMouseUp);
       });
 
+      // Append to DOM first so getBBox() works for selection sizing
       runeLayersGroup.appendChild(g);
+
+      if (layer.id === state.activeLayerId) {
+        const contentEl = g.firstElementChild as SVGGraphicsElement;
+        const bbox = contentEl.getBBox();
+        const strokeW = parseFloat(styleDef.strokeWidth) || 0;
+        const pad = 5 + strokeW / 2;
+        const sel = createEl('rect') as SVGRectElement;
+        sel.classList.add('selection-indicator');
+        sel.setAttribute('x', String(bbox.x - pad));
+        sel.setAttribute('y', String(bbox.y - pad));
+        sel.setAttribute('width', String(bbox.width + pad * 2));
+        sel.setAttribute('height', String(bbox.height + pad * 2));
+        sel.setAttribute('stroke', '#00d4ff');
+        sel.setAttribute('stroke-width', '1');
+        sel.setAttribute('fill', 'none');
+        sel.setAttribute('stroke-dasharray', '4 3');
+        g.appendChild(sel);
+      }
     }
   }
 

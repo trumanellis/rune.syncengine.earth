@@ -624,9 +624,7 @@ aside {
 .rune-meaning {
   font-size: 11px;
   color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .rune-phonetic {

@@ -2,7 +2,7 @@ import './styles.css';
 import { initCanvas } from './canvas';
 import { initSidebarLeft } from './sidebar-left';
 import { initSidebarRight } from './sidebar-right';
-import { exportPNG } from './export';
+import { exportHTML } from './export';
 import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll } from './state';
 import { snapRotation, snapScale } from './transforms';
 
@@ -105,10 +105,10 @@ const buttons: { label: string; title: string; action: () => void }[] = [
     },
   },
   {
-    label: '⬇ Export PNG',
-    title: 'Export as PNG',
+    label: '↗ Export',
+    title: 'Export as HTML page',
     action: () => {
-      exportPNG(svgElement);
+      void exportHTML(svgElement);
     },
   },
   {

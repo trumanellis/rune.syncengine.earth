@@ -1,7 +1,69 @@
 import { showToast } from './toast';
+import { getState } from './state';
+import { RUNES } from './runes';
 
-export function exportPNG(svgElement: SVGSVGElement): void {
+// Pre-cache font as base64 for embedding in exported SVGs
+let cachedFontDataUri: string | null = null;
+
+async function ensureFontCached(): Promise<string | null> {
+  if (cachedFontDataUri) return cachedFontDataUri;
   try {
+    // Fetch Google Fonts CSS (with woff2 user-agent to get woff2 URLs)
+    const cssRes = await fetch(
+      'https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap',
+      { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' } }
+    );
+    const cssText = await cssRes.text();
+
+    // Extract font URL from CSS
+    const urlMatch = cssText.match(/url\(([^)]+)\)/);
+    if (!urlMatch) return null;
+
+    const fontUrl = urlMatch[1].replace(/['"]/g, '');
+    const fontRes = await fetch(fontUrl);
+    const fontBlob = await fontRes.blob();
+
+    // Convert to data URI
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        cachedFontDataUri = reader.result as string;
+        resolve(cachedFontDataUri);
+      };
+      reader.readAsDataURL(fontBlob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+// Start pre-caching immediately
+ensureFontCached();
+
+function embedFontInSvg(clone: SVGSVGElement, fontDataUri: string): void {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  let defs = clone.querySelector('defs');
+  if (!defs) {
+    defs = document.createElementNS(SVG_NS, 'defs');
+    clone.prepend(defs);
+  }
+
+  const style = document.createElementNS(SVG_NS, 'style');
+  style.textContent = `
+    @font-face {
+      font-family: 'Noto Sans Runic';
+      src: url('${fontDataUri}') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+  `;
+  defs.appendChild(style);
+}
+
+export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
+  try {
+    const fontDataUri = await ensureFontCached();
+
     // 1. Deep clone the SVG element
     const clone = svgElement.cloneNode(true) as SVGSVGElement;
 
@@ -20,95 +82,135 @@ export function exportPNG(svgElement: SVGSVGElement): void {
       }
     });
 
-    // 4. Set explicit width/height attributes on the clone
-    let width: number;
-    let height: number;
-
-    const viewBox = clone.getAttribute('viewBox');
-    if (viewBox) {
-      const viewBoxParts = viewBox.split(/\s+/).map(Number);
-      width = viewBoxParts[2];
-      height = viewBoxParts[3];
-    } else {
-      const rect = svgElement.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
+    // 4. Embed font if available
+    if (fontDataUri) {
+      embedFontInSvg(clone, fontDataUri);
     }
 
-    clone.setAttribute('width', String(width));
-    clone.setAttribute('height', String(height));
+    // 5. Compute tight viewBox from #rune-layers group
+    clone.style.position = 'absolute';
+    clone.style.visibility = 'hidden';
+    document.body.appendChild(clone);
+    const runeGroup = clone.querySelector('#rune-layers') as SVGGElement;
+    const bbox = runeGroup?.getBBox();
+    document.body.removeChild(clone);
+    clone.style.position = '';
+    clone.style.visibility = '';
 
-    // 5. Serialize the clone to string
+    const padding = 40;
+    let vbX: number, vbY: number, vbW: number, vbH: number;
+    if (bbox && bbox.width > 0 && bbox.height > 0) {
+      vbX = bbox.x - padding;
+      vbY = bbox.y - padding;
+      vbW = bbox.width + padding * 2;
+      vbH = bbox.height + padding * 2;
+    } else {
+      vbX = -padding;
+      vbY = -padding;
+      vbW = padding * 2;
+      vbH = padding * 2;
+    }
+
+    // 6. Set tight viewBox, remove fixed width/height
+    clone.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+
+    // 7. Serialize the cleaned SVG to string
     const svgString = new XMLSerializer().serializeToString(clone);
 
-    // 6. Create a Blob from the SVG string
-    const svgBlob = new Blob([svgString], {
-      type: 'image/svg+xml;charset=utf-8',
-    });
+    // 8. Get state for intention and rune list
+    const state = getState();
+    const intentionText = state.intention.trim();
+    const usedRuneIds = [...new Set(state.layers.map(l => l.runeId))];
+    const usedRunes = usedRuneIds
+      .map(id => RUNES.find(r => r.id === id))
+      .filter(Boolean) as typeof RUNES[number][];
 
-    // 7. Create an object URL from the blob
-    const svgUrl = URL.createObjectURL(svgBlob);
+    // Build HTML sections
+    const intentionSection = intentionText.length > 0
+      ? `<div class="intention">${intentionText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`
+      : '';
 
-    // 8. Create a new Image and set src
-    const image = new Image();
-    image.src = svgUrl;
+    const runeListSection = usedRunes.length > 0
+      ? `<div class="rune-list">
+  <h2>Runes Used</h2>
+  ${usedRunes.map(r => `<div class="rune-entry">${r.letter} ${r.name} — ${r.meaning}</div>`).join('\n  ')}
+</div>`
+      : '';
 
-    image.onload = () => {
-      // 9. On image load: create offscreen canvas with 2x retina resolution
-      const canvasWidth = width * 2;
-      const canvasHeight = height * 2;
+    // 9. Build the self-contained HTML string
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bind Rune Export</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d1a;
+    color: #e8e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 48px 24px;
+  }
+  .intention {
+    color: #d4af37;
+    font-style: italic;
+    font-size: 24px;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.4;
+    margin-bottom: 32px;
+  }
+  .rune-svg {
+    width: 100%;
+    max-width: 512px;
+    margin: 0 auto 48px;
+  }
+  .rune-svg svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .rune-list {
+    text-align: center;
+    max-width: 600px;
+  }
+  .rune-list h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #9098b8;
+    margin-bottom: 16px;
+  }
+  .rune-entry {
+    font-size: 14px;
+    color: #e8e8f0;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+  ${intentionSection}
+  <div class="rune-svg">
+    ${svgString}
+  </div>
+  ${runeListSection}
+</body>
+</html>`;
 
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+    // 10. Open in new tab
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
 
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error('Failed to get canvas context');
-        URL.revokeObjectURL(svgUrl);
-        return;
-      }
-
-      // Draw image to canvas
-      ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
-
-      // Convert to PNG via canvas.toBlob()
-      canvas.toBlob(
-        (pngBlob) => {
-          if (!pngBlob) {
-            console.error('Failed to create PNG blob');
-            URL.revokeObjectURL(svgUrl);
-            return;
-          }
-
-          // Create download link
-          const pngUrl = URL.createObjectURL(pngBlob);
-          const downloadLink = document.createElement('a');
-          downloadLink.href = pngUrl;
-          downloadLink.download = 'bindrune.png';
-
-          // Click programmatically
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-          document.body.removeChild(downloadLink);
-
-          showToast('Exported bindrune.png', 'success');
-
-          // Clean up: revoke URLs
-          URL.revokeObjectURL(pngUrl);
-          URL.revokeObjectURL(svgUrl);
-        },
-        'image/png'
-      );
-    };
-
-    image.onerror = () => {
-      console.error('Failed to load SVG image for export');
-      URL.revokeObjectURL(svgUrl);
-    };
+    showToast('Opened export in new tab', 'success');
   } catch (error) {
-    console.error('SVG to PNG export failed:', error);
+    console.error('HTML export failed:', error);
   }
 }

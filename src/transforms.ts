@@ -21,13 +21,15 @@ export function buildTransform(
   scale: number,
   rotation: number,
   mirrorX: boolean,
-  mirrorY: boolean
+  mirrorY: boolean,
+  offsetDx: number = 0,
+  offsetDy: number = 0
 ): string {
   // Rune center point in viewBox coordinates (80x160 viewBox)
   const centerX = 40;
   const centerY = 80;
 
-  // Build transform order: translate to position, rotate at center, then scale/mirror
+  // Build transform order: translate to position, rotate at center, scale/mirror, then pixel offset
   const transforms: string[] = [];
 
   // 1. Translate to position
@@ -44,6 +46,11 @@ export function buildTransform(
 
   if (scaleX !== 1 || scaleY !== 1) {
     transforms.push(`scale(${scaleX},${scaleY})`);
+  }
+
+  // 4. Per-rune pixel offset (applied last, in local rune space)
+  if (offsetDx !== 0 || offsetDy !== 0) {
+    transforms.push(`translate(${offsetDx},${offsetDy})`);
   }
 
   return transforms.join(' ');

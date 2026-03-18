@@ -8,9 +8,9 @@ export interface RuneDefinition {
 
 // All 24 Elder Futhark runes.
 // Geometric paths in 80x160 viewBox (8 wide × 16 tall).
-// CRITICAL: All stave-based runes have their central stave at x=40
-// so they align when overlaid in a bindrune.
-// Stave runs from y=8 to y=152. Branches extend left/right from there.
+// ALL coordinates snapped to 10px grid for clean alignment.
+// Central stave at x=40, from y=10 to y=150.
+// Branches extend to x=10 (left) or x=70 (right).
 
 export const RUNE_VIEWBOX = '0 0 80 160';
 export const RUNE_WIDTH = 80;
@@ -19,122 +19,122 @@ export const RUNE_HEIGHT = 160;
 export const RUNES: RuneDefinition[] = [
   {
     // Fehu ᚠ — stave + two branches angling up-right
-    id: "fehu", name: "Fehu", letter: "\u16A0", meaning: "Wealth, abundance",
-    path: "M 40 8 L 40 152 M 40 8 L 72 36 M 40 44 L 72 72",
+    id: "fehu", name: "Fehu", letter: "\u16A0", meaning: "Wealth, abundance, and prosperity",
+    path: "M 40 10 L 40 150 M 40 10 L 70 40 M 40 50 L 70 80",
   },
   {
-    // Uruz ᚢ — stave down, bar across top to right stave, right stave shorter
-    id: "uruz", name: "Uruz", letter: "\u16A2", meaning: "Strength, vitality",
-    path: "M 40 8 L 40 152 M 40 8 L 72 8 L 72 96 L 40 152",
+    // Uruz ᚢ — stave + bar right + right stave + diagonal back
+    id: "uruz", name: "Uruz", letter: "\u16A2", meaning: "Raw strength, vitality, and primal power",
+    path: "M 40 10 L 40 150 M 40 10 L 70 10 L 70 90 L 40 150",
   },
   {
-    // Thurisaz ᚦ — stave + triangle thorn pointing right
-    id: "thurisaz", name: "Thurisaz", letter: "\u16A6", meaning: "Protection, defense",
-    path: "M 40 8 L 40 152 M 40 32 L 72 64 L 40 96",
+    // Thurisaz ᚦ — stave + triangle thorn right
+    id: "thurisaz", name: "Thurisaz", letter: "\u16A6", meaning: "Thorn of protection, reactive force",
+    path: "M 40 10 L 40 150 M 40 30 L 70 60 L 40 90",
   },
   {
     // Ansuz ᚨ — stave + two branches angling down-left
-    id: "ansuz", name: "Ansuz", letter: "\u16A8", meaning: "Wisdom, communication",
-    path: "M 40 8 L 40 152 M 40 8 L 8 44 M 40 44 L 8 80",
+    id: "ansuz", name: "Ansuz", letter: "\u16A8", meaning: "Divine wisdom, speech, and revelation",
+    path: "M 40 10 L 40 150 M 40 10 L 10 40 M 40 50 L 10 80",
   },
   {
-    // Raidho ᚱ — stave + triangular loop top-right + diagonal leg
-    id: "raidho", name: "Raidho", letter: "\u16B1", meaning: "Journey, movement",
-    path: "M 40 8 L 40 152 M 40 8 L 72 8 L 72 56 L 40 56 M 40 88 L 72 152",
+    // Raidho ᚱ — stave + loop top-right + diagonal leg
+    id: "raidho", name: "Raidho", letter: "\u16B1", meaning: "Journey, rhythm, and right action",
+    path: "M 40 10 L 40 150 M 40 10 L 70 10 L 70 60 L 40 60 M 40 90 L 70 150",
   },
   {
-    // Kenaz ᚲ — open angle pointing left (torch) — no stave
-    id: "kenaz", name: "Kenaz", letter: "\u16B2", meaning: "Knowledge, creativity",
-    path: "M 64 8 L 16 80 L 64 152",
+    // Kenaz ᚲ — open angle pointing left (no stave)
+    id: "kenaz", name: "Kenaz", letter: "\u16B2", meaning: "Torch of knowledge, craft, and insight",
+    path: "M 60 10 L 20 80 L 60 150",
   },
   {
-    // Gebo ᚷ — X cross — no stave
-    id: "gebo", name: "Gebo", letter: "\u16B7", meaning: "Gift, partnership",
-    path: "M 8 24 L 72 136 M 72 24 L 8 136",
+    // Gebo ᚷ — X cross (no stave)
+    id: "gebo", name: "Gebo", letter: "\u16B7", meaning: "Gift, sacred exchange, and balance",
+    path: "M 10 30 L 70 130 M 70 30 L 10 130",
   },
   {
-    // Wunjo ᚹ — stave + flag at top pointing right
-    id: "wunjo", name: "Wunjo", letter: "\u16B9", meaning: "Joy, harmony",
-    path: "M 40 8 L 40 152 M 40 8 L 72 8 L 40 56",
+    // Wunjo ᚹ — stave + flag at top right
+    id: "wunjo", name: "Wunjo", letter: "\u16B9", meaning: "Joy, harmony, and shared wellbeing",
+    path: "M 40 10 L 40 150 M 40 10 L 70 10 L 40 60",
   },
   {
-    // Hagalaz ᚺ — stave + crossbar connecting to right branch
-    id: "hagalaz", name: "Hagalaz", letter: "\u16BA", meaning: "Disruption, change",
-    path: "M 40 8 L 40 152 M 40 48 L 72 48 L 72 8 M 40 112 L 72 112 L 72 152",
+    // Hagalaz ᚺ — stave + crossbar to right branch
+    id: "hagalaz", name: "Hagalaz", letter: "\u16BA", meaning: "Hail, sudden disruption, and transformation",
+    path: "M 40 10 L 40 150 M 40 50 L 70 50 L 70 10 M 40 110 L 70 110 L 70 150",
   },
   {
     // Nauthiz ᚾ — stave + crossing diagonal
-    id: "nauthiz", name: "Nauthiz", letter: "\u16BE", meaning: "Need, constraint",
-    path: "M 40 8 L 40 152 M 16 112 L 64 48",
+    id: "nauthiz", name: "Nauthiz", letter: "\u16BE", meaning: "Need, constraint, and lessons of hardship",
+    path: "M 40 10 L 40 150 M 20 110 L 60 50",
   },
   {
-    // Isa ᛁ — single vertical line (stave only)
-    id: "isa", name: "Isa", letter: "\u16C1", meaning: "Ice, stillness",
-    path: "M 40 8 L 40 152",
+    // Isa ᛁ — single vertical line
+    id: "isa", name: "Isa", letter: "\u16C1", meaning: "Ice, stillness, and focused patience",
+    path: "M 40 10 L 40 150",
   },
   {
-    // Jera ᛃ — two interlocking angular pieces — no stave
-    id: "jera", name: "Jera", letter: "\u16C3", meaning: "Harvest, cycles",
-    path: "M 40 8 L 64 8 L 64 44 L 40 80 M 40 80 L 16 116 L 16 152 L 40 152",
+    // Jera ᛃ — two interlocking angles (no stave)
+    id: "jera", name: "Jera", letter: "\u16C3", meaning: "Harvest, natural cycles, and earned reward",
+    path: "M 40 10 L 70 10 L 70 50 L 40 80 M 40 80 L 10 110 L 10 150 L 40 150",
   },
   {
     // Eihwaz ᛇ — stave + upper-left + lower-right branches
-    id: "eihwaz", name: "Eihwaz", letter: "\u16C7", meaning: "Endurance, reliability",
-    path: "M 40 8 L 40 152 M 40 44 L 8 8 M 40 116 L 72 152",
+    id: "eihwaz", name: "Eihwaz", letter: "\u16C7", meaning: "Yew tree, endurance, and deep resilience",
+    path: "M 40 10 L 40 150 M 40 50 L 10 10 M 40 110 L 70 150",
   },
   {
-    // Perthro ᛈ — angular cup open right, centered on stave
-    id: "perthro", name: "Perthro", letter: "\u16C8", meaning: "Mystery, fate",
-    path: "M 40 8 L 72 44 L 72 116 L 40 152",
+    // Perthro ᛈ — angular cup open right
+    id: "perthro", name: "Perthro", letter: "\u16C8", meaning: "Mystery, fate, and the unknown path",
+    path: "M 20 10 L 60 50 L 60 110 L 20 150",
   },
   {
     // Algiz ᛉ — stave + Y branches at top
-    id: "algiz", name: "Algiz", letter: "\u16C9", meaning: "Protection, sanctuary",
-    path: "M 40 152 L 40 8 M 40 44 L 8 8 M 40 44 L 72 8",
+    id: "algiz", name: "Algiz", letter: "\u16C9", meaning: "Elk sedge, divine protection, and sanctuary",
+    path: "M 40 150 L 40 10 M 40 50 L 10 10 M 40 50 L 70 10",
   },
   {
-    // Sowilo ᛊ — angular S / lightning — no stave
-    id: "sowilo", name: "Sowilo", letter: "\u16CA", meaning: "Sun, success",
-    path: "M 16 8 L 64 8 L 16 80 L 64 80",
+    // Sowilo ᛊ — angular S / lightning (no stave)
+    id: "sowilo", name: "Sowilo", letter: "\u16CA", meaning: "Sun, vitality, and triumphant clarity",
+    path: "M 20 10 L 60 10 L 20 80 L 60 80",
   },
   {
     // Tiwaz ᛏ — stave + upward arrow wings
-    id: "tiwaz", name: "Tiwaz", letter: "\u16CF", meaning: "Justice, honor",
-    path: "M 40 152 L 40 8 M 40 8 L 8 56 M 40 8 L 72 56",
+    id: "tiwaz", name: "Tiwaz", letter: "\u16CF", meaning: "Justice, honor, and sacrificial courage",
+    path: "M 40 150 L 40 10 M 40 10 L 10 60 M 40 10 L 70 60",
   },
   {
     // Berkano ᛒ — stave + two bumps right
-    id: "berkano", name: "Berkano", letter: "\u16D2", meaning: "Growth, renewal",
-    path: "M 40 8 L 40 152 M 40 8 L 72 40 L 40 80 M 40 80 L 72 112 L 40 152",
+    id: "berkano", name: "Berkano", letter: "\u16D2", meaning: "Birch, new growth, and nurturing renewal",
+    path: "M 40 10 L 40 150 M 40 10 L 70 40 L 40 80 M 40 80 L 70 110 L 40 150",
   },
   {
-    // Ehwaz ᛖ — two staves connected by diagonal: left stave down, diagonal right-up, right stave down
-    id: "ehwaz", name: "Ehwaz", letter: "\u16D6", meaning: "Trust, partnership",
-    path: "M 16 152 L 16 8 L 64 80 L 64 152 M 64 8 L 16 80",
+    // Ehwaz ᛖ — stave + mirrored zigzag (M-shape via central stave)
+    id: "ehwaz", name: "Ehwaz", letter: "\u16D6", meaning: "Horse, trust, and harmonious partnership",
+    path: "M 40 10 L 40 150 M 40 10 L 10 80 L 40 80 L 70 10 M 70 10 L 70 80",
   },
   {
-    // Mannaz ᛗ — stave + crossed branches to right stave
-    id: "mannaz", name: "Mannaz", letter: "\u16D7", meaning: "Humanity, self",
-    path: "M 40 8 L 40 152 M 40 8 L 72 8 L 72 152 M 40 8 L 72 80 M 72 8 L 40 80",
+    // Mannaz ᛗ — stave + M-shape branches from top
+    id: "mannaz", name: "Mannaz", letter: "\u16D7", meaning: "Humanity, self-awareness, and shared destiny",
+    path: "M 40 10 L 40 150 M 10 10 L 10 80 M 10 10 L 40 50 M 70 10 L 40 50 M 70 10 L 70 80",
   },
   {
-    // Laguz ᛚ — stave + single branch angling down-right from top
-    id: "laguz", name: "Laguz", letter: "\u16DA", meaning: "Water, intuition",
-    path: "M 40 8 L 40 152 M 40 8 L 72 56",
+    // Laguz ᛚ — stave + single branch from top angling right
+    id: "laguz", name: "Laguz", letter: "\u16DA", meaning: "Water, intuition, and the flow of life",
+    path: "M 40 10 L 40 150 M 40 10 L 70 60",
   },
   {
-    // Ingwaz ᛜ — diamond — no stave
-    id: "ingwaz", name: "Ingwaz", letter: "\u16DC", meaning: "Fertility, potential",
-    path: "M 40 16 L 72 80 L 40 144 L 8 80 Z",
+    // Ingwaz ᛜ — diamond (no stave)
+    id: "ingwaz", name: "Ingwaz", letter: "\u16DC", meaning: "Seed of fertility, inner potential",
+    path: "M 40 20 L 70 80 L 40 140 L 10 80 Z",
   },
   {
-    // Dagaz ᛞ — bowtie / hourglass — no stave
-    id: "dagaz", name: "Dagaz", letter: "\u16DE", meaning: "Dawn, breakthrough",
-    path: "M 8 16 L 72 16 L 8 144 L 72 144 Z",
+    // Dagaz ᛞ — bowtie / hourglass (no stave)
+    id: "dagaz", name: "Dagaz", letter: "\u16DE", meaning: "Dawn, awakening, and bold breakthrough",
+    path: "M 10 20 L 70 20 L 10 140 L 70 140 Z",
   },
   {
-    // Othala ᛟ — diamond top + two legs splaying down
-    id: "othala", name: "Othala", letter: "\u16DF", meaning: "Heritage, legacy",
-    path: "M 40 8 L 72 44 L 40 80 L 8 44 Z M 8 44 L 8 152 M 72 44 L 72 152",
+    // Othala ᛟ — diamond top + two legs
+    id: "othala", name: "Othala", letter: "\u16DF", meaning: "Ancestral heritage, legacy, and homeland",
+    path: "M 40 10 L 70 50 L 40 90 L 10 50 Z M 10 50 L 10 150 M 70 50 L 70 150",
   },
 ];

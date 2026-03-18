@@ -68,9 +68,10 @@ export function initSidebarLeft(container: HTMLElement): void {
       } else {
         const textEl = document.createElementNS(svgNS, 'text');
         textEl.setAttribute('x', '40');
-        textEl.setAttribute('y', '128');
+        textEl.setAttribute('y', '80');
         textEl.setAttribute('text-anchor', 'middle');
-        textEl.setAttribute('font-size', '144');
+        textEl.setAttribute('dominant-baseline', 'central');
+        textEl.setAttribute('font-size', '90');
         textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
         textEl.setAttribute('fill', styleDef.fill);
         textEl.setAttribute('stroke', styleDef.stroke);
