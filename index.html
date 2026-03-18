@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-skin="jewels">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BindRune Editor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Runic&family=Outfit:wght@300..800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ᚱ</text></svg>" />
   </head>
   <body>
@@ -20,7 +20,16 @@
         <section id="canvas-container"></section>
         <aside id="sidebar-right"></aside>
       </main>
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
     </div>
+    <script src="/theme-engine.js"></script>
+    <script>
+      ThemeEngine.init({
+        defaultSkin: 'jewels',
+        storageKey: 'bindrune-skin',
+        skins: ['technical', 'organic', 'botanical', 'jewels', 'modern', 'contemplative', 'solarpunk']
+      });
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

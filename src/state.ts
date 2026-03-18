@@ -11,13 +11,13 @@ export interface RuneLayer {
 }
 
 export const RUNE_STYLES = [
-  { id: 'geometric', label: 'Geometric', mode: 'text' as const, font: "'Noto Sans Runic', sans-serif", fill: 'none', stroke: '#d4af37', strokeWidth: '10' },
-  { id: 'geometric-filled', label: 'Geometric Filled', mode: 'text' as const, font: "'Noto Sans Runic', sans-serif", fill: '#d4af37', stroke: 'none', strokeWidth: '0' },
-  { id: 'geometric-bold', label: 'Geometric Bold', mode: 'text' as const, font: "'Noto Sans Runic', sans-serif", fill: '#d4af37', stroke: '#d4af37', strokeWidth: '5' },
+  { id: 'geometric', label: 'Geometric', mode: 'text' as const, font: "'Noto Sans Runic', sans-serif", fill: 'none', stroke: 'var(--gold)', strokeWidth: '10' },
+  { id: 'geometric-filled', label: 'Geometric Filled', mode: 'text' as const, font: "'Noto Sans Runic', sans-serif", fill: 'var(--gold)', stroke: 'none', strokeWidth: '0' },
+  { id: 'geometric-bold', label: 'Geometric Bold', mode: 'text' as const, font: "'Noto Sans Runic', sans-serif", fill: 'var(--gold)', stroke: 'var(--gold)', strokeWidth: '5' },
   { id: 'stave', label: 'Stave', mode: 'path' as const, strokeWidth: '10' },
   { id: 'stave-thin', label: 'Stave Thin', mode: 'path' as const, strokeWidth: '5' },
   { id: 'stave-bold', label: 'Stave Bold', mode: 'path' as const, strokeWidth: '16' },
-  { id: 'classic', label: 'Classic', mode: 'text' as const, font: 'Segoe UI Historic, serif', fill: '#d4af37', stroke: 'none', strokeWidth: '0' },
+  { id: 'classic', label: 'Classic', mode: 'text' as const, font: 'Segoe UI Historic, serif', fill: 'var(--gold)', stroke: 'none', strokeWidth: '0' },
 ] as const;
 
 export type RuneStyleId = typeof RUNE_STYLES[number]['id'];

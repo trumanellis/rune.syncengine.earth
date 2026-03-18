@@ -33,7 +33,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
   hLine.setAttribute('y1', '0');
   hLine.setAttribute('x2', String(gridSize));
   hLine.setAttribute('y2', '0');
-  hLine.setAttribute('stroke', '#2a2a3e');
+  hLine.style.stroke = 'var(--grid-line)';
   hLine.setAttribute('stroke-width', '0.5');
 
   const vLine = createEl('line') as SVGLineElement;
@@ -41,7 +41,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
   vLine.setAttribute('y1', '0');
   vLine.setAttribute('x2', '0');
   vLine.setAttribute('y2', String(gridSize));
-  vLine.setAttribute('stroke', '#2a2a3e');
+  vLine.style.stroke = 'var(--grid-line)';
   vLine.setAttribute('stroke-width', '0.5');
 
   pattern.appendChild(hLine);
@@ -68,7 +68,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
   xAxis.setAttribute('y1', '0');
   xAxis.setAttribute('x2', '2000');
   xAxis.setAttribute('y2', '0');
-  xAxis.setAttribute('stroke', '#3a4a6e');
+  xAxis.style.stroke = 'var(--grid-major)';
   xAxis.setAttribute('stroke-width', '1');
 
   const yAxis = createEl('line') as SVGLineElement;
@@ -76,7 +76,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
   yAxis.setAttribute('y1', '-2000');
   yAxis.setAttribute('x2', '0');
   yAxis.setAttribute('y2', '2000');
-  yAxis.setAttribute('stroke', '#3a4a6e');
+  yAxis.style.stroke = 'var(--grid-major)';
   yAxis.setAttribute('stroke-width', '1');
 
   axesGroup.appendChild(xAxis);
@@ -129,7 +129,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       if (styleDef.mode === 'path') {
         const pathEl = createEl('path') as SVGPathElement;
         pathEl.setAttribute('d', rune.path);
-        pathEl.setAttribute('stroke', '#d4af37');
+        pathEl.style.stroke = 'var(--gold)';
         pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
         pathEl.setAttribute('stroke-linecap', 'round');
         pathEl.setAttribute('stroke-linejoin', 'round');
@@ -143,8 +143,8 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         text.setAttribute('dominant-baseline', 'central');
         text.setAttribute('font-size', '112');
         text.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-        text.setAttribute('fill', styleDef.fill);
-        text.setAttribute('stroke', styleDef.stroke);
+        text.style.fill = styleDef.fill;
+        text.style.stroke = styleDef.stroke;
         text.setAttribute('stroke-width', styleDef.strokeWidth);
         text.textContent = rune.letter;
         g.appendChild(text);
@@ -166,15 +166,11 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         showContextMenu(e.clientX, e.clientY, layer.id);
       });
 
-      // Drag interaction
-      g.addEventListener('mousedown', (e: MouseEvent) => {
-        e.preventDefault();
+      // Shared drag logic for mouse and touch
+      function startDrag(startScreenX: number, startScreenY: number) {
         (g as any).__didDrag = false;
-        // Auto-select on drag start
         selectLayer(layer.id);
 
-        const startScreenX = e.clientX;
-        const startScreenY = e.clientY;
         const startLayerX = layer.x;
         const startLayerY = layer.y;
 
@@ -191,38 +187,67 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
         const startSVG = toSVGCoords(startScreenX, startScreenY);
 
-        function onMouseMove(me: MouseEvent) {
-          const curSVG = toSVGCoords(me.clientX, me.clientY);
+        function handleMove(screenX: number, screenY: number) {
+          const curSVG = toSVGCoords(screenX, screenY);
           const dx = curSVG.x - startSVG.x;
           const dy = curSVG.y - startSVG.y;
-
           if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
             (g as any).__didDrag = true;
           }
-
           const newX = snapToGrid(startLayerX + dx, state.gridSize);
           const newY = snapToGrid(startLayerY + dy, state.gridSize);
           g.setAttribute('transform', buildTransform(newX, newY, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY, offset.dx, offset.dy));
         }
 
-        function onMouseUp(me: MouseEvent) {
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-
-          const curSVG = toSVGCoords(me.clientX, me.clientY);
+        function handleEnd(screenX: number, screenY: number) {
+          const curSVG = toSVGCoords(screenX, screenY);
           const dx = curSVG.x - startSVG.x;
           const dy = curSVG.y - startSVG.y;
           const newX = snapToGrid(startLayerX + dx, state.gridSize);
           const newY = snapToGrid(startLayerY + dy, state.gridSize);
-
           if ((g as any).__didDrag) {
             moveLayer(layer.id, newX, newY);
           }
         }
 
+        return { handleMove, handleEnd };
+      }
+
+      // Mouse drag
+      g.addEventListener('mousedown', (e: MouseEvent) => {
+        e.preventDefault();
+        const { handleMove, handleEnd } = startDrag(e.clientX, e.clientY);
+
+        function onMouseMove(me: MouseEvent) { handleMove(me.clientX, me.clientY); }
+        function onMouseUp(me: MouseEvent) {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          handleEnd(me.clientX, me.clientY);
+        }
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
       });
+
+      // Touch drag
+      g.addEventListener('touchstart', (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const { handleMove, handleEnd } = startDrag(touch.clientX, touch.clientY);
+
+        function onTouchMove(te: TouchEvent) {
+          if (te.touches.length !== 1) return;
+          handleMove(te.touches[0].clientX, te.touches[0].clientY);
+        }
+        function onTouchEnd(te: TouchEvent) {
+          document.removeEventListener('touchmove', onTouchMove);
+          document.removeEventListener('touchend', onTouchEnd);
+          const ct = te.changedTouches[0];
+          handleEnd(ct.clientX, ct.clientY);
+        }
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd);
+      }, { passive: false });
 
       // Append to DOM first so getBBox() works for selection sizing
       runeLayersGroup.appendChild(g);
@@ -238,7 +263,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         sel.setAttribute('y', String(bbox.y - pad));
         sel.setAttribute('width', String(bbox.width + pad * 2));
         sel.setAttribute('height', String(bbox.height + pad * 2));
-        sel.setAttribute('stroke', '#00d4ff');
+        sel.style.stroke = 'var(--cyan)';
         sel.setAttribute('stroke-width', '1');
         sel.setAttribute('fill', 'none');
         sel.setAttribute('stroke-dasharray', '4 3');
@@ -327,6 +352,85 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
     updateViewBox();
   }, { passive: false });
+
+  // --- Touch pan & pinch-to-zoom on canvas ---
+  let touchPanState: { x: number; y: number; vbX: number; vbY: number } | null = null;
+  let pinchState: { dist: number; midX: number; midY: number; vbX: number; vbY: number; vbW: number; vbH: number } | null = null;
+
+  function touchDist(t1: Touch, t2: Touch): number {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  svg.addEventListener('touchstart', (e: TouchEvent) => {
+    // Only handle touches on empty canvas (not on rune elements which handle their own)
+    const target = e.target as Element;
+    if (target.closest('.rune-layer')) return;
+
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      touchPanState = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        vbX, vbY,
+      };
+      pinchState = null;
+    } else if (e.touches.length === 2) {
+      e.preventDefault();
+      const t0 = e.touches[0], t1 = e.touches[1];
+      pinchState = {
+        dist: touchDist(t0, t1),
+        midX: (t0.clientX + t1.clientX) / 2,
+        midY: (t0.clientY + t1.clientY) / 2,
+        vbX, vbY, vbW, vbH,
+      };
+      touchPanState = null;
+    }
+  }, { passive: false });
+
+  svg.addEventListener('touchmove', (e: TouchEvent) => {
+    if (e.touches.length === 1 && touchPanState) {
+      e.preventDefault();
+      const panScale = vbW / svg.getBoundingClientRect().width;
+      const dx = (touchPanState.x - e.touches[0].clientX) * panScale;
+      const dy = (touchPanState.y - e.touches[0].clientY) * panScale;
+      vbX = touchPanState.vbX + dx;
+      vbY = touchPanState.vbY + dy;
+      updateViewBox();
+    } else if (e.touches.length === 2 && pinchState) {
+      e.preventDefault();
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const curDist = touchDist(t0, t1);
+      const scale = pinchState.dist / curDist;
+
+      const rect = svg.getBoundingClientRect();
+      const midX = (t0.clientX + t1.clientX) / 2;
+      const midY = (t0.clientY + t1.clientY) / 2;
+      const mx = (midX - rect.left) / rect.width;
+      const my = (midY - rect.top) / rect.height;
+
+      const newW = Math.max(20, Math.min(4000, pinchState.vbW * scale));
+      const newH = Math.max(24, Math.min(4800, pinchState.vbH * scale));
+
+      vbX = pinchState.vbX + (pinchState.vbW - newW) * mx;
+      vbY = pinchState.vbY + (pinchState.vbH - newH) * my;
+      vbW = newW;
+      vbH = newH;
+
+      // Also pan with midpoint movement
+      const panScale = vbW / rect.width;
+      vbX += (pinchState.midX - midX) * panScale;
+      vbY += (pinchState.midY - midY) * panScale;
+
+      updateViewBox();
+    }
+  }, { passive: false });
+
+  svg.addEventListener('touchend', () => {
+    touchPanState = null;
+    pinchState = null;
+  });
 
   subscribe(render);
   render();

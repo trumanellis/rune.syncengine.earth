@@ -147,6 +147,48 @@ for (let i = 0; i < buttons.length; i++) {
   toolbarButtons.push(btn);
 }
 
+// --- Responsive sidebar toggles ---
+const toggleLeft = document.createElement('button');
+toggleLeft.className = 'sidebar-toggle';
+toggleLeft.id = 'toggle-sidebar-left';
+toggleLeft.title = 'Toggle rune palette';
+toggleLeft.textContent = '☰';
+toggleLeft.addEventListener('click', () => {
+  const app = document.getElementById('app')!;
+  const isOpen = app.classList.toggle('sidebar-left-open');
+  app.classList.remove('sidebar-right-open');
+  toggleLeft.classList.toggle('is-active', isOpen);
+  toggleRight.classList.remove('is-active');
+});
+
+const toggleRight = document.createElement('button');
+toggleRight.className = 'sidebar-toggle';
+toggleRight.id = 'toggle-sidebar-right';
+toggleRight.title = 'Toggle layers panel';
+toggleRight.textContent = '☷';
+toggleRight.addEventListener('click', () => {
+  const app = document.getElementById('app')!;
+  const isOpen = app.classList.toggle('sidebar-right-open');
+  app.classList.remove('sidebar-left-open');
+  toggleRight.classList.toggle('is-active', isOpen);
+  toggleLeft.classList.remove('is-active');
+});
+
+// Insert toggle buttons at the start and end of toolbar
+toolbarEl.insertBefore(toggleLeft, toolbarEl.firstChild);
+toolbarEl.appendChild(toggleRight);
+
+// Backdrop click closes sidebars
+const backdrop = document.getElementById('sidebar-backdrop');
+if (backdrop) {
+  backdrop.addEventListener('click', () => {
+    const app = document.getElementById('app')!;
+    app.classList.remove('sidebar-left-open', 'sidebar-right-open');
+    toggleLeft.classList.remove('is-active');
+    toggleRight.classList.remove('is-active');
+  });
+}
+
 // Update disabled states on state change
 subscribe(() => {
   const hasActive = !!getActiveLayer();

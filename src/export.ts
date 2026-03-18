@@ -97,7 +97,7 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     clone.style.position = '';
     clone.style.visibility = '';
 
-    const padding = 40;
+    const padding = 4;
     let vbX: number, vbY: number, vbW: number, vbH: number;
     if (bbox && bbox.width > 0 && bbox.height > 0) {
       vbX = bbox.x - padding;
@@ -148,49 +148,57 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
 <title>Bind Rune Export</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
   body {
-    background: #0d0d1a;
-    color: #e8e8f0;
+    background: #06060e;
+    color: rgba(255,255,255,0.9);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
-    padding: 48px 24px;
+    height: 100vh;
+    padding: 32px 77px;
   }
   .intention {
-    color: #d4af37;
+    color: #6bcfff;
     font-style: italic;
     font-size: 24px;
     text-align: center;
-    max-width: 600px;
     line-height: 1.4;
-    margin-bottom: 32px;
+    flex-shrink: 0;
+    margin-bottom: 16px;
   }
   .rune-svg {
-    width: 100%;
-    max-width: 512px;
-    margin: 0 auto 48px;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .rune-svg svg {
-    width: 100%;
-    height: auto;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
     display: block;
   }
   .rune-list {
     text-align: center;
-    max-width: 600px;
+    flex-shrink: 0;
+    margin-top: 16px;
   }
   .rune-list h2 {
     font-size: 16px;
     font-weight: 600;
-    color: #9098b8;
-    margin-bottom: 16px;
+    color: #6a6580;
+    margin-bottom: 12px;
   }
   .rune-entry {
     font-size: 14px;
-    color: #e8e8f0;
-    margin-bottom: 8px;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 6px;
     line-height: 1.4;
   }
 </style>
@@ -201,6 +209,126 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     ${svgString}
   </div>
   ${runeListSection}
+  <button id="save-png" style="
+    position: fixed; top: 16px; right: 16px;
+    background: #18183a; color: rgba(255,255,255,0.9); border: 1px solid rgba(180,170,220,0.12);
+    padding: 8px 16px; border-radius: 14px; cursor: pointer;
+    font-size: 14px; font-family: inherit; z-index: 100;
+  " onmouseover="this.style.background='#24245a'" onmouseout="this.style.background='#18183a'">
+    Save PNG
+  </button>
+  <script>
+  document.getElementById('save-png').addEventListener('click', async function() {
+    const btn = this;
+    btn.style.display = 'none';
+
+    const W = document.documentElement.clientWidth;
+    const H = document.documentElement.clientHeight;
+    const scale = 2; // retina
+    const canvas = document.createElement('canvas');
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    // Draw background
+    const bodyStyle = getComputedStyle(document.body);
+    ctx.fillStyle = bodyStyle.backgroundColor;
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw intention text
+    const intentionEl = document.querySelector('.intention');
+    if (intentionEl) {
+      const style = getComputedStyle(intentionEl);
+      const rect = intentionEl.getBoundingClientRect();
+      ctx.fillStyle = style.color;
+      ctx.font = style.fontStyle + ' ' + style.fontSize + ' ' + style.fontFamily;
+      ctx.textAlign = 'center';
+
+      // Wrap text matching the rendered line breaks
+      const range = document.createRange();
+      const lines = [];
+      let lastTop = -1;
+      let currentLine = '';
+      for (const node of intentionEl.childNodes) {
+        if (node.nodeType === 3) {
+          const text = node.textContent;
+          for (let i = 0; i < text.length; i++) {
+            range.setStart(node, i);
+            range.setEnd(node, i + 1);
+            const charRect = range.getBoundingClientRect();
+            if (lastTop !== -1 && charRect.top > lastTop + 2) {
+              lines.push(currentLine);
+              currentLine = '';
+            }
+            if (text[i] !== ' ' || currentLine.length > 0) {
+              currentLine += text[i];
+            }
+            lastTop = charRect.top;
+          }
+        }
+      }
+      if (currentLine.trim()) lines.push(currentLine);
+
+      const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.4;
+      const textTop = rect.top;
+      const centerX = rect.left + rect.width / 2;
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i].trim(), centerX, textTop + (i + 0.85) * lineHeight);
+      }
+    }
+
+    // Draw SVG as image
+    const svgEl = document.querySelector('.rune-svg svg');
+    if (svgEl) {
+      const svgRect = svgEl.getBoundingClientRect();
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = svgUrl;
+      });
+      ctx.drawImage(img, svgRect.left, svgRect.top, svgRect.width, svgRect.height);
+      URL.revokeObjectURL(svgUrl);
+    }
+
+    // Draw rune list
+    const runeListEl = document.querySelector('.rune-list');
+    if (runeListEl) {
+      const h2 = runeListEl.querySelector('h2');
+      if (h2) {
+        const h2Style = getComputedStyle(h2);
+        const h2Rect = h2.getBoundingClientRect();
+        ctx.fillStyle = h2Style.color;
+        ctx.font = h2Style.fontWeight + ' ' + h2Style.fontSize + ' ' + h2Style.fontFamily;
+        ctx.textAlign = 'center';
+        ctx.fillText(h2.textContent, h2Rect.left + h2Rect.width / 2, h2Rect.top + parseFloat(h2Style.fontSize) * 0.85);
+      }
+      const entries = runeListEl.querySelectorAll('.rune-entry');
+      entries.forEach(function(entry) {
+        const eStyle = getComputedStyle(entry);
+        const eRect = entry.getBoundingClientRect();
+        ctx.fillStyle = eStyle.color;
+        ctx.font = eStyle.fontSize + ' ' + eStyle.fontFamily;
+        ctx.textAlign = 'center';
+        ctx.fillText(entry.textContent, eRect.left + eRect.width / 2, eRect.top + parseFloat(eStyle.fontSize) * 0.85);
+      });
+    }
+
+    // Download
+    canvas.toBlob(function(blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'bindrune.png';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      btn.style.display = '';
+    }, 'image/png');
+  });
+  </script>
 </body>
 </html>`;
 

@@ -59,7 +59,7 @@ export function initSidebarLeft(container: HTMLElement): void {
       if (styleDef.mode === 'path') {
         const pathEl = document.createElementNS(svgNS, 'path');
         pathEl.setAttribute('d', rune.path);
-        pathEl.setAttribute('stroke', '#d4af37');
+        pathEl.style.stroke = 'var(--gold)';
         pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
         pathEl.setAttribute('stroke-linecap', 'round');
         pathEl.setAttribute('stroke-linejoin', 'round');
@@ -73,8 +73,8 @@ export function initSidebarLeft(container: HTMLElement): void {
         textEl.setAttribute('dominant-baseline', 'central');
         textEl.setAttribute('font-size', '90');
         textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-        textEl.setAttribute('fill', styleDef.fill);
-        textEl.setAttribute('stroke', styleDef.stroke);
+        textEl.style.fill = styleDef.fill;
+        textEl.style.stroke = styleDef.stroke;
         textEl.setAttribute('stroke-width', styleDef.strokeWidth);
         textEl.textContent = rune.letter;
         svg.appendChild(textEl);
