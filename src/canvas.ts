@@ -233,6 +233,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       g.addEventListener('touchstart', (e: TouchEvent) => {
         if (e.touches.length !== 1) return;
         e.preventDefault();
+        e.stopPropagation();
         const touch = e.touches[0];
         const { handleMove, handleEnd } = startDrag(touch.clientX, touch.clientY);
 
