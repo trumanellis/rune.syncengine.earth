@@ -2,6 +2,10 @@ import { showToast } from './toast';
 import { getState } from './state';
 import { RUNES } from './runes';
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Pre-cache font as base64 for embedding in exported SVGs
 let cachedFontDataUri: string | null = null;
 
@@ -135,7 +139,7 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     const runeListSection = usedRunes.length > 0
       ? `<div class="rune-list">
   <h2>Runes Used</h2>
-  ${usedRunes.map(r => `<div class="rune-entry">${r.letter} ${r.name} — ${r.meaning}</div>`).join('\n  ')}
+  ${usedRunes.map(r => `<div class="rune-entry">${escapeHtml(r.letter)} ${escapeHtml(r.name)} — ${escapeHtml(r.meaning)}</div>`).join('\n  ')}
 </div>`
       : '';
 
@@ -145,10 +149,12 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     const sharedStyleEl = document.getElementById('te-shared');
     const skinCSS = skinStyleEl ? skinStyleEl.textContent || '' : '';
     const sharedCSS = sharedStyleEl ? sharedStyleEl.textContent || '' : '';
+    const safeSkinCSS = skinCSS.replace(/<\/style/gi, '<\\/style');
+    const safeSharedCSS = sharedCSS.replace(/<\/style/gi, '<\\/style');
 
     // 10. Build the self-contained HTML string
     const html = `<!DOCTYPE html>
-<html lang="en" data-skin="${currentSkin}">
+<html lang="en" data-skin="${escapeHtml(currentSkin)}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -156,8 +162,8 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Raleway:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
-<style>${sharedCSS}</style>
-<style>${skinCSS}</style>
+<style>${safeSharedCSS}</style>
+<style>${safeSkinCSS}</style>
 <style>
   /* Bridge: BindRune CSS vars → theme engine tokens */
   :root {
@@ -379,9 +385,11 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
 
     showToast('Opened export in new tab', 'success');
   } catch (error) {
     console.error('HTML export failed:', error);
+    showToast('Export failed', 'error');
   }
 }

@@ -210,13 +210,9 @@ subscribe(() => {
     const btn = toolbarButtons[idx];
     if (!btn) continue;
     if (hasActive) {
-      btn.classList.remove('is-disabled');
-      btn.style.opacity = '';
-      btn.style.pointerEvents = '';
+      btn.disabled = false;
     } else {
-      btn.classList.add('is-disabled');
-      btn.style.opacity = '0.4';
-      btn.style.pointerEvents = 'none';
+      btn.disabled = true;
     }
   }
   // Keep intention input in sync (e.g. after undo/redo)

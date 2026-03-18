@@ -155,5 +155,15 @@ export function initSidebarLeft(container: HTMLElement): void {
   }
 
   render();
-  subscribe(render);
+
+  let prevStyle = getState().runeStyle;
+  let prevColor = getState().runeColor;
+  subscribe(() => {
+    const s = getState();
+    if (s.runeStyle !== prevStyle || s.runeColor !== prevColor) {
+      prevStyle = s.runeStyle;
+      prevColor = s.runeColor;
+      render();
+    }
+  });
 }

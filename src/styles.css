@@ -299,7 +299,8 @@ body {
   border-color: var(--gold-dim);
 }
 
-.toolbar-btn.is-disabled {
+.toolbar-btn.is-disabled,
+.toolbar-btn:disabled {
   opacity: 0.4;
   pointer-events: none;
   cursor: default;

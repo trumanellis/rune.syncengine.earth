@@ -10,6 +10,11 @@ function createEl(tag: string): SVGElement {
   return document.createElementNS(SVG_NS, tag) as SVGElement;
 }
 
+const runeMap = new Map<string, RuneDefinition>();
+for (const r of RUNES) {
+  runeMap.set(r.id, r);
+}
+
 export function initCanvas(container: HTMLElement): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
   svg.setAttribute('viewBox', '-250 -300 500 600');
@@ -106,12 +111,6 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
     // Clear rune layers
     while (runeLayersGroup.firstChild) {
       runeLayersGroup.removeChild(runeLayersGroup.firstChild);
-    }
-
-    // Build rune lookup
-    const runeMap = new Map<string, RuneDefinition>();
-    for (const r of RUNES) {
-      runeMap.set(r.id, r);
     }
 
     for (const layer of state.layers) {

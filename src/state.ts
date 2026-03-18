@@ -1,3 +1,5 @@
+import { showToast } from './toast';
+
 export interface RuneLayer {
   id: string;
   runeId: string;       // references RuneDefinition.id
@@ -147,6 +149,18 @@ function pushUndo(): void {
   redoStack.length = 0;
 }
 
+let moveUndoPushed = false;
+let moveUndoTimer: ReturnType<typeof setTimeout> | null = null;
+
+function pushMoveUndo(): void {
+  if (!moveUndoPushed) {
+    pushUndo();
+    moveUndoPushed = true;
+  }
+  if (moveUndoTimer) clearTimeout(moveUndoTimer);
+  moveUndoTimer = setTimeout(() => { moveUndoPushed = false; }, 500);
+}
+
 export function undo(): void {
   if (undoStack.length === 0) return;
   redoStack.push(structuredClone(state));
@@ -175,6 +189,23 @@ function notify(): void {
   for (const listener of listeners) {
     listener();
   }
+}
+
+// --- Validation ---
+
+function validateImportedLayer(l: any): RuneLayer | null {
+  if (typeof l.id !== 'string' || typeof l.runeId !== 'string') return null;
+  return {
+    id: l.id,
+    runeId: l.runeId,
+    x: typeof l.x === 'number' && isFinite(l.x) ? l.x : 0,
+    y: typeof l.y === 'number' && isFinite(l.y) ? l.y : 0,
+    scale: typeof l.scale === 'number' && isFinite(l.scale) ? Math.max(0.25, Math.min(8, l.scale)) : 1,
+    rotation: typeof l.rotation === 'number' && isFinite(l.rotation) ? l.rotation : 0,
+    mirrorX: l.mirrorX === true,
+    mirrorY: l.mirrorY === true,
+    visible: l.visible !== false,
+  };
 }
 
 // --- Actions ---
@@ -211,7 +242,7 @@ export function removeLayer(id: string): void {
 }
 
 export function moveLayer(id: string, x: number, y: number): void {
-  pushUndo();
+  pushMoveUndo();
   const layers = state.layers.map((l) => (l.id === id ? { ...l, x, y } : l));
   state = { ...state, layers };
   notify();
@@ -230,15 +261,16 @@ export function updateTransform(
 }
 
 export function reorderLayer(id: string, direction: "up" | "down"): void {
-  pushUndo();
   const index = state.layers.findIndex((l) => l.id === id);
   if (index === -1) return;
 
   const layers = [...state.layers];
 
   if (direction === "up" && index < layers.length - 1) {
+    pushUndo();
     [layers[index], layers[index + 1]] = [layers[index + 1], layers[index]];
   } else if (direction === "down" && index > 0) {
+    pushUndo();
     [layers[index], layers[index - 1]] = [layers[index - 1], layers[index]];
   } else {
     return; // already at boundary, no change
@@ -264,7 +296,7 @@ export function duplicateLayer(id: string): void {
 }
 
 export function nudgeRuneOffset(runeId: string, ddx: number, ddy: number): void {
-  pushUndo();
+  pushMoveUndo();
   const existing = state.runeOffsets[runeId] ?? { dx: 0, dy: 0 };
   const updated = { dx: existing.dx + ddx, dy: existing.dy + ddy };
   const runeOffsets = { ...state.runeOffsets, [runeId]: updated };
@@ -278,6 +310,7 @@ export function getRuneOffset(runeId: string): RuneOffset {
 }
 
 export function setRuneStyle(styleId: RuneStyleId): void {
+  pushUndo();
   state = { ...state, runeStyle: styleId };
   notify();
 }
@@ -336,23 +369,36 @@ export function importProject(): void {
       try {
         const data = JSON.parse(reader.result as string);
         if (!data.layers || !Array.isArray(data.layers)) {
-          alert('Invalid BindRune file.');
+          showToast('Invalid BindRune file.', 'error');
           return;
         }
+        const validLayers = data.layers
+          .map((l: any) => validateImportedLayer(l))
+          .filter((l: RuneLayer | null): l is RuneLayer => l !== null);
+        if (validLayers.length === 0 && data.layers.length > 0) {
+          showToast('No valid layers found in file', 'error');
+          return;
+        }
+        const validStyle = RUNE_STYLES.some(s => s.id === data.runeStyle) ? data.runeStyle : 'geometric-filled';
+        const validColor = typeof data.runeColor === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(data.runeColor) ? data.runeColor : '#8aad6e';
         pushUndo();
-        state.layers = data.layers.map((l: any) => ({ ...l, visible: l.visible ?? true }));
-        state.activeLayerId = null;
-        state.runeStyle = data.runeStyle ?? 'geometric-filled';
-        state.intention = data.intention ?? '';
-        state.runeColor = data.runeColor ?? '#8aad6e';
+        state = {
+          ...state,
+          layers: validLayers,
+          activeLayerId: null,
+          runeStyle: validStyle,
+          intention: typeof data.intention === 'string' ? data.intention : '',
+          runeColor: validColor,
+        };
         if (data.runeOffsets) {
-          state.runeOffsets = { ...state.runeOffsets, ...data.runeOffsets };
-          saveOffsets(state.runeOffsets);
+          const runeOffsets = { ...state.runeOffsets, ...data.runeOffsets };
+          state = { ...state, runeOffsets };
+          saveOffsets(runeOffsets);
         }
         saveState();
         notify();
       } catch {
-        alert('Could not read BindRune file.');
+        showToast('Could not read BindRune file.', 'error');
       }
     };
     reader.readAsText(file);
@@ -394,9 +440,9 @@ export function centerLayer(id: string): void {
 }
 
 export function bringToFront(id: string): void {
-  pushUndo();
   const index = state.layers.findIndex(l => l.id === id);
   if (index === -1 || index === state.layers.length - 1) return;
+  pushUndo();
   const layers = [...state.layers];
   const [layer] = layers.splice(index, 1);
   layers.push(layer);
@@ -405,9 +451,9 @@ export function bringToFront(id: string): void {
 }
 
 export function sendToBack(id: string): void {
-  pushUndo();
   const index = state.layers.findIndex(l => l.id === id);
   if (index <= 0) return;
+  pushUndo();
   const layers = [...state.layers];
   const [layer] = layers.splice(index, 1);
   layers.unshift(layer);
