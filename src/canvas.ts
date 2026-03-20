@@ -126,6 +126,17 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
       const styleDef = RUNE_STYLES.find(s => s.id === state.runeStyle) ?? RUNE_STYLES[0];
       const runeColor = state.runeColor;
+
+      // Invisible hit-area so clicks anywhere in the rune bounding box register,
+      // not just on the thin stroke pixels
+      const hitRect = createEl('rect') as SVGRectElement;
+      hitRect.setAttribute('x', '0');
+      hitRect.setAttribute('y', '0');
+      hitRect.setAttribute('width', '80');
+      hitRect.setAttribute('height', '160');
+      hitRect.setAttribute('fill', 'transparent');
+      g.appendChild(hitRect);
+
       if (styleDef.mode === 'path') {
         const pathEl = createEl('path') as SVGPathElement;
         pathEl.setAttribute('d', rune.path);
@@ -150,12 +161,10 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
         g.appendChild(text);
       }
 
-      // Click to select (guarded by didDrag)
+      // Click to select — drag end already calls selectLayer,
+      // so just stop propagation to prevent canvas deselect
       g.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!(g as any).__didDrag) {
-          selectLayer(layer.id);
-        }
       });
 
       // Right-click context menu
@@ -168,8 +177,7 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
       // Shared drag logic for mouse and touch
       function startDrag(startScreenX: number, startScreenY: number) {
-        (g as any).__didDrag = false;
-        selectLayer(layer.id);
+        let didDrag = false;
 
         const startLayerX = layer.x;
         const startLayerY = layer.y;
@@ -187,16 +195,21 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
 
         const startSVG = toSVGCoords(startScreenX, startScreenY);
 
+        // Find the live <g> element (may be recreated by re-renders)
+        function liveG(): SVGGElement {
+          return runeLayersGroup.querySelector(`[data-layer-id="${layer.id}"]`) as SVGGElement ?? g;
+        }
+
         function handleMove(screenX: number, screenY: number) {
           const curSVG = toSVGCoords(screenX, screenY);
           const dx = curSVG.x - startSVG.x;
           const dy = curSVG.y - startSVG.y;
           if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
-            (g as any).__didDrag = true;
+            didDrag = true;
           }
           const newX = snapToGrid(startLayerX + dx, state.gridSize);
           const newY = snapToGrid(startLayerY + dy, state.gridSize);
-          g.setAttribute('transform', buildTransform(newX, newY, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY, offset.dx, offset.dy));
+          liveG().setAttribute('transform', buildTransform(newX, newY, layer.scale, layer.rotation, layer.mirrorX, layer.mirrorY, offset.dx, offset.dy));
         }
 
         function handleEnd(screenX: number, screenY: number) {
@@ -205,12 +218,13 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
           const dy = curSVG.y - startSVG.y;
           const newX = snapToGrid(startLayerX + dx, state.gridSize);
           const newY = snapToGrid(startLayerY + dy, state.gridSize);
-          if ((g as any).__didDrag) {
+          if (didDrag) {
             moveLayer(layer.id, newX, newY);
           }
+          selectLayer(layer.id);
         }
 
-        return { handleMove, handleEnd };
+        return { handleMove, handleEnd, isDrag: () => didDrag };
       }
 
       // Mouse drag
@@ -254,7 +268,8 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       runeLayersGroup.appendChild(g);
 
       if (layer.id === state.activeLayerId) {
-        const contentEl = g.firstElementChild as SVGGraphicsElement;
+        // Skip the hit-rect (first child) to get the actual rune path/text
+        const contentEl = (g.children[1] ?? g.firstElementChild) as SVGGraphicsElement;
         const bbox = contentEl.getBBox();
         const strokeW = parseFloat(styleDef.strokeWidth) || 0;
         const pad = 5 + strokeW / 2;
