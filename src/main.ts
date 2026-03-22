@@ -2,7 +2,7 @@ import './styles.css';
 import { initCanvas } from './canvas';
 import { initSidebarLeft } from './sidebar-left';
 import { initSidebarRight } from './sidebar-right';
-import { exportHTML } from './export';
+import { exportHTML, exportSVG } from './export';
 import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll, exportProject, importProject } from './state';
 import { snapRotation, snapScale } from './transforms';
 
@@ -126,6 +126,13 @@ const buttons: { label: string; title: string; action: () => void }[] = [
     },
   },
   {
+    label: '◇ SVG',
+    title: 'Export as SVG file',
+    action: () => {
+      void exportSVG(svgElement);
+    },
+  },
+  {
     label: '🗑 Delete',
     title: 'Delete active layer',
     action: () => {
@@ -147,6 +154,18 @@ const buttons: { label: string; title: string; action: () => void }[] = [
 
 // Indices of buttons that require an active layer
 const requiresLayer = [0, 1, 2, 3, 4, 9]; // Rotate, Mirror X, Mirror Y, Scale Up, Scale Down, Delete
+
+// Brand element with back-link to parent site
+const brand = document.createElement('div');
+brand.className = 'toolbar-brand';
+brand.innerHTML = `<a href="https://rune.syncengine.earth" class="brand-link brand-link-home" title="BindRune Editor">
+  <img src="/Logo.svg" alt="" class="brand-logo" />
+  <span class="brand-name">ᛒindᚱune</span>
+</a>
+<a href="https://syncengine.earth" class="brand-link brand-link-parent" title="Back to Synchronicity Engine">
+  <span class="brand-subtitle">Synchronicity Engine</span>
+</a>`;
+toolbarEl.appendChild(brand);
 
 // Build toolbar
 const toolbarButtons: HTMLButtonElement[] = [];

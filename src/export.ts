@@ -91,7 +91,10 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
       embedFontInSvg(clone, fontDataUri);
     }
 
-    // 5. Compute tight viewBox from #rune-layers group
+    // 5. Remove transparent hit-area rects so getBBox reflects visible glyphs only
+    clone.querySelectorAll('#rune-layers rect[fill="transparent"]').forEach(el => el.remove());
+
+    // 6. Compute tight viewBox from #rune-layers group
     clone.style.position = 'absolute';
     clone.style.visibility = 'hidden';
     document.body.appendChild(clone);
@@ -391,5 +394,111 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
   } catch (error) {
     console.error('HTML export failed:', error);
     showToast('Export failed', 'error');
+  }
+}
+
+export async function exportSVG(svgElement: SVGSVGElement): Promise<void> {
+  try {
+    const fontDataUri = await ensureFontCached();
+
+    // 1. Deep clone and strip editor-only elements
+    const clone = svgElement.cloneNode(true) as SVGSVGElement;
+    clone.querySelectorAll('.grid-line, .selection-indicator, .grid-pattern').forEach(el => el.remove());
+    clone.querySelectorAll('defs').forEach(defs => {
+      if (defs.querySelector('.grid-pattern')) defs.remove();
+    });
+
+    // 2. Embed font for standalone rendering
+    if (fontDataUri) {
+      embedFontInSvg(clone, fontDataUri);
+    }
+
+    // 3. Remove transparent hit-area rects so getBBox reflects visible glyphs only
+    clone.querySelectorAll('#rune-layers rect[fill="transparent"]').forEach(el => el.remove());
+
+    // 4. Compute tight viewBox from rune-layers group
+    clone.style.position = 'absolute';
+    clone.style.visibility = 'hidden';
+    document.body.appendChild(clone);
+    const runeGroup = clone.querySelector('#rune-layers') as SVGGElement;
+    const bbox = runeGroup?.getBBox();
+    document.body.removeChild(clone);
+    clone.style.position = '';
+    clone.style.visibility = '';
+
+    const padding = 4;
+    let vbX: number, vbY: number, vbW: number, vbH: number;
+    if (bbox && bbox.width > 0 && bbox.height > 0) {
+      vbX = bbox.x - padding;
+      vbY = bbox.y - padding;
+      vbW = bbox.width + padding * 2;
+      vbH = bbox.height + padding * 2;
+    } else {
+      vbX = -padding;
+      vbY = -padding;
+      vbW = padding * 2;
+      vbH = padding * 2;
+    }
+
+    clone.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+
+    // 4. Add metadata
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const state = getState();
+    const intentionText = state.intention.trim();
+    const usedRuneIds = [...new Set(state.layers.map(l => l.runeId))];
+    const usedRunes = usedRuneIds
+      .map(id => RUNES.find(r => r.id === id))
+      .filter(Boolean) as typeof RUNES[number][];
+
+    const descParts: string[] = [];
+    if (intentionText) descParts.push(`Intention: ${intentionText}`);
+    if (usedRunes.length > 0) {
+      descParts.push('Runes: ' + usedRunes.map(r => `${r.letter} ${r.name}`).join(', '));
+    }
+    if (descParts.length > 0) {
+      const desc = document.createElementNS(SVG_NS, 'desc');
+      desc.textContent = descParts.join('\n');
+      clone.prepend(desc);
+    }
+
+    const title = document.createElementNS(SVG_NS, 'title');
+    title.textContent = 'BindRune Export';
+    clone.prepend(title);
+
+    // 5. Serialize and download
+    const svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      new XMLSerializer().serializeToString(clone);
+
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: 'bindrune.svg',
+          types: [{ description: 'SVG Image', accept: { 'image/svg+xml': ['.svg'] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        showToast('SVG saved', 'success');
+        return;
+      } catch (e: any) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+
+    // Fallback download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bindrune.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('SVG downloaded', 'success');
+  } catch (error) {
+    console.error('SVG export failed:', error);
+    showToast('SVG export failed', 'error');
   }
 }

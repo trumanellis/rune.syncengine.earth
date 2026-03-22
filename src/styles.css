@@ -152,6 +152,7 @@ body {
 }
 
 .toolbar-brand .brand-name {
+  font-family: 'Noto Sans Runic', sans-serif;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -159,12 +160,39 @@ body {
   text-shadow: 0 0 12px var(--gold-glow);
 }
 
+.toolbar-brand .brand-logo {
+  height: 28px;
+  width: auto;
+  filter: drop-shadow(0 0 6px var(--gold-glow));
+}
+
+
 .toolbar-brand .brand-subtitle {
   font-size: 10px;
   font-weight: 400;
   color: var(--text-muted);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.toolbar-brand .brand-link {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity var(--transition-fast);
+}
+
+.toolbar-brand .brand-link-home {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-brand .brand-link-home:hover {
+  opacity: 0.8;
+}
+
+.toolbar-brand .brand-link-parent:hover .brand-subtitle {
+  color: var(--text-secondary);
 }
 
 /* Toolbar section divider */
