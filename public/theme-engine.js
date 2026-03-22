@@ -4,7 +4,7 @@
  * templesofrefuge.earth / syncengine.earth
  *
  * Skins (data-skin) — complete visual identities from UNIFIED_DESIGN_SYSTEM
- * Technical · Organic · Botanical · Jewels
+ * Jewels · Organic · Runestone · Midnight · Contemplative · High Contrast
  *
  * Each skin sets both --s-* and --t-* tokens so sites using
  * either namespace work seamlessly.
@@ -30,7 +30,7 @@
   }
 
   /* ================================================================
-     SKIN CSS — 4 skins from UNIFIED_DESIGN_SYSTEM
+     SKIN CSS — 6 skins from UNIFIED_DESIGN_SYSTEM
      Each sets --s-* (skin tokens) AND --t-* (theme tokens mapped)
      ================================================================ */
   var SKIN_CSS = '\
@@ -38,107 +38,93 @@
   --s-bg:#0d0d0d;--s-bg2:#141414;--s-card:#1a1a1a;--s-hover:#222;\
   --s-tx:#eee;--s-t2:#999;--s-mt:#666;--s-gh:#444;\
   --s-bd:#2a2a2a;--s-b2:#1f1f1f;\
-  --s-ac:#00d4aa;\
+  --s-ac:#00d4aa;--s-rune:#eee;\
   --s-font:"DM Sans",-apple-system,sans-serif;\
   --s-display:"Playfair Display",Georgia,serif;\
   --s-radius:12px;\
   --t-bg:#0d0d0d;--t-sf:#141414;--t-cd:#1a1a1a;--t-hv:#222;\
   --t-tx:#eee;--t-t2:#999;--t-mt:#666;--t-dm:#444;\
   --t-bd:#2a2a2a;--t-b2:#1f1f1f;--t-bc:rgba(255,255,255,0.1);\
-  --t-ac:#00d4aa;--t-a2:#00b894;\
+  --t-ac:#00d4aa;--t-a2:#00b894;--t-rune:#eee;\
   --t-ok:#22c55e;--t-wn:#ffd93d;--t-er:#ff6b6b;\
   --t-glass:rgba(13,13,13,0.85);--t-glass-bd:rgba(255,255,255,0.1);\
 }\
 [data-skin="organic"]{\
-  --s-bg:#1a1814;--s-bg2:#2c2820;--s-card:#2c2820;--s-hover:#3d3628;\
-  --s-tx:#f4efe6;--s-t2:#8faa7e;--s-mt:#6b5744;--s-gh:#3d3628;\
-  --s-bd:#3d3628;--s-b2:#2c2820;\
-  --s-ac:#4a7c59;\
+  --s-bg:#0a1a0e;--s-bg2:#0f2414;--s-card:#0f2414;--s-hover:#163320;\
+  --s-tx:#d4e8c8;--s-t2:#6aaa6a;--s-mt:#3d6a3d;--s-gh:#264a2a;\
+  --s-bd:rgba(100,180,100,0.15);--s-b2:rgba(100,180,100,0.08);\
+  --s-ac:#5cc06a;--s-rune:#8adb6e;\
   --s-font:"Instrument Sans",-apple-system,sans-serif;\
   --s-display:"Fraunces",Georgia,serif;\
   --s-radius:16px;\
-  --t-bg:#1a1814;--t-sf:#2c2820;--t-cd:#2c2820;--t-hv:#3d3628;\
-  --t-tx:#f4efe6;--t-t2:#8faa7e;--t-mt:#6b5744;--t-dm:#3d3628;\
-  --t-bd:#3d3628;--t-b2:#2c2820;--t-bc:rgba(75,124,89,0.15);\
-  --t-ac:#4a7c59;--t-a2:#6b9e6b;\
-  --t-ok:#4a7c59;--t-wn:#d4a037;--t-er:#c75050;\
-  --t-glass:rgba(26,24,20,0.9);--t-glass-bd:rgba(75,124,89,0.15);\
-  --shadow-glow:0 0 8px rgba(74,124,89,0.25);\
-}\
-[data-skin="botanical"]{\
-  --s-bg:#faf6ef;--s-bg2:#f5ede0;--s-card:#ffffff;--s-hover:#ede4d3;\
-  --s-tx:#2c2416;--s-t2:#7a6e5d;--s-mt:#a69e8e;--s-gh:#c8c0b2;\
-  --s-bd:#e2d7c4;--s-b2:#ede4d3;\
-  --s-ac:#4a7a4e;\
-  --s-font:"Outfit",-apple-system,sans-serif;\
-  --s-display:"Cormorant Garamond",Georgia,serif;\
-  --s-radius:16px;\
-  --t-bg:#faf6ef;--t-sf:#f5ede0;--t-cd:#ffffff;--t-hv:#ede4d3;\
-  --t-tx:#2c2416;--t-t2:#7a6e5d;--t-mt:#a69e8e;--t-dm:#c8c0b2;\
-  --t-bd:#e2d7c4;--t-b2:#ede4d3;--t-bc:rgba(0,0,0,0.08);\
-  --t-ac:#4a7a4e;--t-a2:#87a07a;\
-  --t-ok:#4a7a4e;--t-wn:#c5952e;--t-er:#b35a5a;\
-  --t-glass:rgba(250,246,239,0.9);--t-glass-bd:rgba(0,0,0,0.08);\
+  --t-bg:#0a1a0e;--t-sf:#0f2414;--t-cd:#0f2414;--t-hv:#163320;\
+  --t-tx:#d4e8c8;--t-t2:#6aaa6a;--t-mt:#3d6a3d;--t-dm:#264a2a;\
+  --t-bd:rgba(100,180,100,0.15);--t-b2:rgba(100,180,100,0.08);--t-bc:rgba(100,180,100,0.15);\
+  --t-ac:#5cc06a;--t-a2:#3d9a4a;--t-rune:#8adb6e;\
+  --t-ok:#5cc06a;--t-wn:#c8c040;--t-er:#d05050;\
+  --t-glass:rgba(10,26,14,0.9);--t-glass-bd:rgba(100,180,100,0.12);\
+  --shadow-glow:0 0 10px rgba(92,192,106,0.2);\
 }\
 [data-skin="jewels"]{\
   --s-bg:#06060e;--s-bg2:#0b0b18;--s-card:#0b0b18;--s-hover:#18183a;\
   --s-tx:rgba(255,255,255,0.9);--s-t2:#6a6580;--s-mt:#3d3855;--s-gh:#2a2644;\
   --s-bd:rgba(180,170,220,0.12);--s-b2:rgba(180,170,220,0.06);\
-  --s-ac:#6bcfff;\
+  --s-ac:#6bcfff;--s-rune:#b19cd9;\
   --s-font:"Raleway",sans-serif;\
   --s-display:"Cinzel",serif;\
   --s-radius:14px;\
   --t-bg:#06060e;--t-sf:#0b0b18;--t-cd:#0b0b18;--t-hv:#18183a;\
   --t-tx:rgba(255,255,255,0.9);--t-t2:#6a6580;--t-mt:#3d3855;--t-dm:#2a2644;\
   --t-bd:rgba(180,170,220,0.12);--t-b2:rgba(180,170,220,0.06);--t-bc:rgba(180,170,220,0.12);\
-  --t-ac:#6bcfff;--t-a2:#b19cd9;\
+  --t-ac:#6bcfff;--t-a2:#b19cd9;--t-rune:#b19cd9;\
   --t-ok:#98d8aa;--t-wn:#ffd93d;--t-er:#ff6b9d;\
   --t-glass:rgba(6,6,14,0.9);--t-glass-bd:rgba(180,170,220,0.12);\
 }\
-[data-skin="modern"]{\
-  --s-bg:#09090b;--s-bg2:#111114;--s-card:#151518;--s-hover:#1c1c20;\
-  --s-tx:#fafafa;--s-t2:#a0a0ab;--s-mt:#52525b;--s-gh:#3f3f46;\
-  --s-bd:#27272a;--s-b2:#1c1c20;\
-  --s-ac:#818cf8;\
-  --s-font:"Inter",-apple-system,system-ui,sans-serif;\
-  --s-display:"Inter",-apple-system,system-ui,sans-serif;\
+[data-skin="runestone"]{\
+  --s-bg:#1a1918;--s-bg2:#242220;--s-card:#242220;--s-hover:#332f2b;\
+  --s-tx:#d4cec4;--s-t2:#8a8278;--s-mt:#5c564e;--s-gh:#3d3935;\
+  --s-bd:#3d3935;--s-b2:#2e2b28;\
+  --s-ac:#c49a3c;--s-rune:#c49a3c;\
+  --s-font:"Instrument Sans",-apple-system,sans-serif;\
+  --s-display:"Cinzel",serif;\
+  --s-radius:6px;\
+  --t-bg:#1a1918;--t-sf:#242220;--t-cd:#242220;--t-hv:#332f2b;\
+  --t-tx:#d4cec4;--t-t2:#8a8278;--t-mt:#5c564e;--t-dm:#3d3935;\
+  --t-bd:#3d3935;--t-b2:#2e2b28;--t-bc:rgba(196,154,60,0.12);\
+  --t-ac:#c49a3c;--t-a2:#a07830;--t-rune:#c49a3c;\
+  --t-ok:#7a9a5a;--t-wn:#d4a037;--t-er:#b35a5a;\
+  --t-glass:rgba(26,25,24,0.9);--t-glass-bd:rgba(196,154,60,0.12);\
+  --shadow-glow:0 0 8px rgba(196,154,60,0.2);\
+}\
+[data-skin="midnight"]{\
+  --s-bg:#000000;--s-bg2:#0a0a0a;--s-card:#0a0a0a;--s-hover:#151515;\
+  --s-tx:rgba(255,255,255,0.85);--s-t2:#666;--s-mt:#444;--s-gh:#2a2a2a;\
+  --s-bd:rgba(255,255,255,0.08);--s-b2:rgba(255,255,255,0.04);\
+  --s-ac:#c0c0c0;--s-rune:#e8e8e8;\
+  --s-font:"Raleway",sans-serif;\
+  --s-display:"Cinzel",serif;\
   --s-radius:10px;\
-  --t-bg:#09090b;--t-sf:#111114;--t-cd:#151518;--t-hv:#1c1c20;\
-  --t-tx:#fafafa;--t-t2:#a0a0ab;--t-mt:#52525b;--t-dm:#3f3f46;\
-  --t-bd:#27272a;--t-b2:#1c1c20;--t-bc:rgba(255,255,255,0.08);\
-  --t-ac:#818cf8;--t-a2:#6366f1;\
-  --t-ok:#34d399;--t-wn:#fbbf24;--t-er:#f87171;\
-  --t-glass:rgba(9,9,11,0.9);--t-glass-bd:rgba(255,255,255,0.08);\
+  --t-bg:#000000;--t-sf:#0a0a0a;--t-cd:#0a0a0a;--t-hv:#151515;\
+  --t-tx:rgba(255,255,255,0.85);--t-t2:#666;--t-mt:#444;--t-dm:#2a2a2a;\
+  --t-bd:rgba(255,255,255,0.08);--t-b2:rgba(255,255,255,0.04);--t-bc:rgba(255,255,255,0.08);\
+  --t-ac:#c0c0c0;--t-a2:#888;--t-rune:#e8e8e8;\
+  --t-ok:#6aaa7a;--t-wn:#c0a050;--t-er:#aa5555;\
+  --t-glass:rgba(0,0,0,0.92);--t-glass-bd:rgba(255,255,255,0.06);\
 }\
 [data-skin="contemplative"]{\
   --s-bg:#f4f0e6;--s-bg2:#ece7da;--s-card:#f4f0e6;--s-hover:#e5dfd0;\
   --s-tx:#2a2420;--s-t2:#6b6358;--s-mt:#a09888;--s-gh:#c8c0b2;\
   --s-bd:#d6cebe;--s-b2:#e5dfd0;\
-  --s-ac:#c4392a;\
+  --s-ac:#c4392a;--s-rune:#2a2420;\
   --s-font:"Cormorant Garamond",Georgia,serif;\
   --s-display:"Cormorant Garamond",Georgia,serif;\
   --s-radius:2px;\
   --t-bg:#f4f0e6;--t-sf:#ece7da;--t-cd:#f4f0e6;--t-hv:#e5dfd0;\
   --t-tx:#2a2420;--t-t2:#6b6358;--t-mt:#a09888;--t-dm:#c8c0b2;\
   --t-bd:#d6cebe;--t-b2:#e5dfd0;--t-bc:rgba(0,0,0,0.08);\
-  --t-ac:#c4392a;--t-a2:#a03020;\
+  --t-ac:#c4392a;--t-a2:#a03020;--t-rune:#2a2420;\
   --t-ok:#4a7a4e;--t-wn:#b8860b;--t-er:#c4392a;\
   --t-glass:rgba(244,240,230,0.92);--t-glass-bd:rgba(0,0,0,0.08);\
-}\
-[data-skin="solarpunk"]{\
-  --s-bg:#f6faf2;--s-bg2:#ebf3e4;--s-card:#ffffff;--s-hover:#ddebd2;\
-  --s-tx:#1a2e1a;--s-t2:#4a6a3a;--s-mt:#88a878;--s-gh:#b8d0a8;\
-  --s-bd:#cce0bc;--s-b2:#ddebd2;\
-  --s-ac:#2d8a4e;\
-  --s-font:"Plus Jakarta Sans",-apple-system,sans-serif;\
-  --s-display:"Plus Jakarta Sans",-apple-system,sans-serif;\
-  --s-radius:16px;\
-  --t-bg:#f6faf2;--t-sf:#ebf3e4;--t-cd:#ffffff;--t-hv:#ddebd2;\
-  --t-tx:#1a2e1a;--t-t2:#4a6a3a;--t-mt:#88a878;--t-dm:#b8d0a8;\
-  --t-bd:#cce0bc;--t-b2:#ddebd2;--t-bc:rgba(0,0,0,0.06);\
-  --t-ac:#2d8a4e;--t-a2:#1e6b38;\
-  --t-ok:#2d8a4e;--t-wn:#c59000;--t-er:#c0392b;\
-  --t-glass:rgba(246,250,242,0.92);--t-glass-bd:rgba(0,0,0,0.06);\
 }';
 
   /* ================================================================
@@ -173,6 +159,9 @@
 }\
 [data-skin="technical"] .te-bar{background:rgba(13,13,13,0.9);backdrop-filter:blur(20px) saturate(180%)}\
 [data-skin="jewels"] .te-bar{background:rgba(6,6,14,0.85);backdrop-filter:blur(20px) saturate(180%)}\
+[data-skin="midnight"] .te-bar{background:rgba(0,0,0,0.95);backdrop-filter:blur(20px) saturate(180%)}\
+[data-skin="organic"] .te-bar{background:rgba(10,26,14,0.9);backdrop-filter:blur(20px) saturate(180%)}\
+[data-skin="runestone"] .te-bar{background:rgba(26,25,24,0.9);backdrop-filter:blur(20px) saturate(180%)}\
 .te-section{display:flex;align-items:center;gap:16px}\
 .te-label{\
   font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;\
@@ -188,7 +177,7 @@
 }\
 .te-pill:hover{border-color:var(--s-ac);color:var(--s-ac)}\
 .te-pill.active{background:var(--s-ac);color:var(--s-bg);border-color:var(--s-ac)}\
-[data-skin="botanical"] .te-pill.active{color:#fff}\
+[data-skin="contemplative"] .te-pill.active{color:#fff}\
 @media(max-width:640px){\
   .te-bar{padding:0 12px}\
   .te-pill{font-size:9px;padding:3px 8px}\
@@ -213,16 +202,15 @@
   /* ================================================================
      INTERNALS
      ================================================================ */
-  var VALID_SKINS = ['technical', 'organic', 'botanical', 'jewels', 'modern', 'contemplative', 'solarpunk'];
+  var VALID_SKINS = ['jewels', 'organic', 'runestone', 'midnight', 'contemplative', 'technical'];
 
   var DEFAULT_LABELS = {
-    'technical':     'Technical',
-    'organic':       'Organic',
-    'botanical':     'Botanical',
     'jewels':        'Jewels',
-    'modern':        'Modern',
+    'organic':       'Organic',
+    'runestone':     'Runestone',
+    'midnight':      'Midnight',
     'contemplative': 'Contemplative',
-    'solarpunk':     'Solarpunk'
+    'technical':     'High Contrast'
   };
 
   var activePills = [];

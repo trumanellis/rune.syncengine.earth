@@ -380,7 +380,7 @@ export function importProject(): void {
           return;
         }
         const validStyle = RUNE_STYLES.some(s => s.id === data.runeStyle) ? data.runeStyle : 'geometric-filled';
-        const validColor = typeof data.runeColor === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(data.runeColor) ? data.runeColor : '#8aad6e';
+        const validColor = typeof data.runeColor === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(data.runeColor) ? data.runeColor : '#b19cd9';
         pushUndo();
         state = {
           ...state,
@@ -471,7 +471,7 @@ export function resetAll(): void {
     runeStyle: 'geometric-filled',
     runeOffsets: { ...DEFAULT_OFFSETS },
     intention: '',
-    runeColor: '#8aad6e',
+    runeColor: '#b19cd9',
   };
   try {
     localStorage.removeItem(STATE_KEY);

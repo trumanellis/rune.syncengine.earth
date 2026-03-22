@@ -3,7 +3,7 @@ import { initCanvas } from './canvas';
 import { initSidebarLeft } from './sidebar-left';
 import { initSidebarRight } from './sidebar-right';
 import { exportHTML, exportSVG } from './export';
-import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll, exportProject, importProject } from './state';
+import { getActiveLayer, toggleGrid, updateTransform, removeLayer, duplicateLayer, nudgeRuneOffset, undo, redo, setIntentionQuiet, pushUndo, getState, moveLayer, subscribe, resetAll, exportProject, importProject, setRuneColor } from './state';
 import { snapRotation, snapScale } from './transforms';
 
 // Initialize components
@@ -463,3 +463,19 @@ function toggleShortcutHelp(): void {
   document.body.appendChild(overlay);
   shortcutOverlay = overlay;
 }
+
+// Update default rune color when skin changes
+const SKIN_RUNE_COLORS: Record<string, string> = {
+  jewels:        '#b19cd9',
+  organic:       '#8adb6e',
+  runestone:     '#c49a3c',
+  midnight:      '#e8e8e8',
+  contemplative: '#2a2420',
+  technical:     '#eeeeee',
+};
+
+document.addEventListener('skinchange', (e: Event) => {
+  const skin = (e as CustomEvent).detail?.skin;
+  const color = SKIN_RUNE_COLORS[skin];
+  if (color) setRuneColor(color);
+});
