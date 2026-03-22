@@ -12,10 +12,9 @@ let cachedFontDataUri: string | null = null;
 async function ensureFontCached(): Promise<string | null> {
   if (cachedFontDataUri) return cachedFontDataUri;
   try {
-    // Fetch Google Fonts CSS (with woff2 user-agent to get woff2 URLs)
+    // Fetch Google Fonts CSS to get woff2 font URL
     const cssRes = await fetch(
-      'https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap',
-      { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' } }
+      'https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap'
     );
     const cssText = await cssRes.text();
 
@@ -98,6 +97,7 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
     clone.style.position = 'absolute';
     clone.style.visibility = 'hidden';
     document.body.appendChild(clone);
+    await document.fonts.ready;
     const runeGroup = clone.querySelector('#rune-layers') as SVGGElement;
     const bbox = runeGroup?.getBBox();
     document.body.removeChild(clone);
@@ -164,7 +164,7 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
 <title>Bind Rune Export</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Raleway:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Raleway:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300;1,400&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>${safeSharedCSS}</style>
 <style>${safeSkinCSS}</style>
 <style>
@@ -258,6 +258,7 @@ export async function exportHTML(svgElement: SVGSVGElement): Promise<void> {
   document.getElementById('save-png').addEventListener('click', async function() {
     const btn = this;
     btn.style.display = 'none';
+    await document.fonts.ready;
 
     const W = document.documentElement.clientWidth;
     const H = document.documentElement.clientHeight;
@@ -420,6 +421,7 @@ export async function exportSVG(svgElement: SVGSVGElement): Promise<void> {
     clone.style.position = 'absolute';
     clone.style.visibility = 'hidden';
     document.body.appendChild(clone);
+    await document.fonts.ready;
     const runeGroup = clone.querySelector('#rune-layers') as SVGGElement;
     const bbox = runeGroup?.getBBox();
     document.body.removeChild(clone);
