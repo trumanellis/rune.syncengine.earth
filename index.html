@@ -15,12 +15,13 @@
     <link rel="icon" type="image/svg+xml" href="/Logo.svg" />
     <link rel="apple-touch-icon" href="/Logo.svg" />
     <meta property="og:image" content="https://rune.syncengine.earth/Logo.png" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;" />
   </head>
   <body>
     <div id="app">
       <header id="toolbar"></header>
       <div id="intention-bar">
-        <textarea id="intention-input" placeholder="Write your manifestation intention..." rows="1"></textarea>
+        <textarea id="intention-input" placeholder="Write your manifestation intention..." rows="1" maxlength="2000"></textarea>
       </div>
       <main id="workspace">
         <aside id="sidebar-left"></aside>

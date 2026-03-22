@@ -96,9 +96,10 @@ function loadPersistedState(): Partial<PersistedState> {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedState;
-      // Ensure visible field exists on old persisted layers
-      if (parsed.layers) {
-        parsed.layers = parsed.layers.map(l => ({ ...l, visible: l.visible ?? true }));
+      if (parsed.layers && Array.isArray(parsed.layers)) {
+        parsed.layers = parsed.layers
+          .map((l: any) => validateImportedLayer(l))
+          .filter((l): l is RuneLayer => l !== null);
       }
       return parsed;
     }
@@ -193,7 +194,7 @@ function notify(): void {
 function validateImportedLayer(l: any): RuneLayer | null {
   if (typeof l.id !== 'string' || typeof l.runeId !== 'string') return null;
   return {
-    id: l.id,
+    id: crypto.randomUUID(),
     runeId: l.runeId,
     x: typeof l.x === 'number' && isFinite(l.x) ? l.x : 0,
     y: typeof l.y === 'number' && isFinite(l.y) ? l.y : 0,
@@ -384,11 +385,18 @@ export function importProject(): void {
           layers: validLayers,
           activeLayerId: null,
           runeStyle: validStyle,
-          intention: typeof data.intention === 'string' ? data.intention : '',
+          intention: typeof data.intention === 'string' ? data.intention.slice(0, 2000) : '',
           runeColor: validColor,
         };
-        if (data.runeOffsets) {
-          const runeOffsets = { ...state.runeOffsets, ...data.runeOffsets };
+        if (data.runeOffsets && typeof data.runeOffsets === 'object' && !Array.isArray(data.runeOffsets)) {
+          const safeOffsets: Record<string, RuneOffset> = {};
+          for (const [key, val] of Object.entries(data.runeOffsets)) {
+            if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+            if (val && typeof val === 'object' && typeof (val as any).dx === 'number' && isFinite((val as any).dx) && typeof (val as any).dy === 'number' && isFinite((val as any).dy)) {
+              safeOffsets[key] = { dx: (val as any).dx, dy: (val as any).dy };
+            }
+          }
+          const runeOffsets = { ...state.runeOffsets, ...safeOffsets };
           state = { ...state, runeOffsets };
           saveOffsets(runeOffsets);
         }
@@ -405,13 +413,13 @@ export function importProject(): void {
 
 export function setIntention(text: string): void {
   pushUndo();
-  state = { ...state, intention: text };
+  state = { ...state, intention: text.slice(0, 2000) };
   notify();
 }
 
 /** Update intention without pushing undo — used for per-keystroke input */
 export function setIntentionQuiet(text: string): void {
-  state = { ...state, intention: text };
+  state = { ...state, intention: text.slice(0, 2000) };
   notify();
 }
 

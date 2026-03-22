@@ -158,17 +158,42 @@ const requiresLayer = [0, 1, 2, 3, 4, 9]; // Rotate, Mirror X, Mirror Y, Scale U
 // Brand element with back-link to parent site
 const brand = document.createElement('div');
 brand.className = 'toolbar-brand';
-brand.innerHTML = `<a href="https://rune.syncengine.earth" class="brand-link brand-link-home" title="BindRune Editor">
-  <img src="/Logo.svg" alt="" class="brand-logo" />
-</a>
-<div class="brand-text">
-  <a href="https://rune.syncengine.earth" class="brand-link brand-link-home" title="BindRune Editor">
-    <span class="brand-name">ᛒindᚱune</span>
-  </a>
-  <a href="https://syncengine.earth" class="brand-link brand-link-parent" title="Back to Synchronicity Engine">
-    <span class="brand-subtitle">Synchronicity Engine</span>
-  </a>
-</div>`;
+
+const logoLink = document.createElement('a');
+logoLink.href = 'https://rune.syncengine.earth';
+logoLink.className = 'brand-link brand-link-home';
+logoLink.title = 'BindRune Editor';
+const logoImg = document.createElement('img');
+logoImg.src = '/Logo.svg';
+logoImg.alt = '';
+logoImg.className = 'brand-logo';
+logoLink.appendChild(logoImg);
+brand.appendChild(logoLink);
+
+const brandText = document.createElement('div');
+brandText.className = 'brand-text';
+
+const nameLink = document.createElement('a');
+nameLink.href = 'https://rune.syncengine.earth';
+nameLink.className = 'brand-link brand-link-home';
+nameLink.title = 'BindRune Editor';
+const nameSpan = document.createElement('span');
+nameSpan.className = 'brand-name';
+nameSpan.textContent = 'ᛒindᚱune';
+nameLink.appendChild(nameSpan);
+brandText.appendChild(nameLink);
+
+const parentLink = document.createElement('a');
+parentLink.href = 'https://syncengine.earth';
+parentLink.className = 'brand-link brand-link-parent';
+parentLink.title = 'Back to Synchronicity Engine';
+const subtitleSpan = document.createElement('span');
+subtitleSpan.className = 'brand-subtitle';
+subtitleSpan.textContent = 'Synchronicity Engine';
+parentLink.appendChild(subtitleSpan);
+brandText.appendChild(parentLink);
+
+brand.appendChild(brandText);
 toolbarEl.appendChild(brand);
 
 // Build toolbar
