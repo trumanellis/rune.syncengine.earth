@@ -110,29 +110,18 @@ export function initSidebarLeft(container: HTMLElement): void {
       svg.setAttribute('height', '80');
       svg.setAttribute('viewBox', '0 0 80 160');
 
-      if (styleDef.mode === 'path') {
-        const pathEl = document.createElementNS(svgNS, 'path');
-        pathEl.setAttribute('d', rune.path);
-        pathEl.style.stroke = state.runeColor;
-        pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
-        pathEl.setAttribute('stroke-linecap', 'round');
-        pathEl.setAttribute('stroke-linejoin', 'round');
-        pathEl.setAttribute('fill', 'none');
-        svg.appendChild(pathEl);
-      } else {
-        const textEl = document.createElementNS(svgNS, 'text');
-        textEl.setAttribute('x', '40');
-        textEl.setAttribute('y', '80');
-        textEl.setAttribute('text-anchor', 'middle');
-        textEl.setAttribute('dominant-baseline', 'central');
-        textEl.setAttribute('font-size', '90');
-        textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-        textEl.style.fill = styleDef.fill === 'none' ? 'none' : state.runeColor;
-        textEl.style.stroke = styleDef.stroke === 'none' ? 'none' : state.runeColor;
-        textEl.setAttribute('stroke-width', styleDef.strokeWidth);
-        textEl.textContent = rune.letter;
-        svg.appendChild(textEl);
-      }
+      const textEl = document.createElementNS(svgNS, 'text');
+      textEl.setAttribute('x', '40');
+      textEl.setAttribute('y', '80');
+      textEl.setAttribute('text-anchor', 'middle');
+      textEl.setAttribute('dominant-baseline', 'central');
+      textEl.setAttribute('font-size', '90');
+      textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
+      textEl.style.fill = styleDef.fill === 'none' ? 'none' : state.runeColor;
+      textEl.style.stroke = styleDef.stroke === 'none' ? 'none' : state.runeColor;
+      textEl.setAttribute('stroke-width', styleDef.strokeWidth);
+      textEl.textContent = rune.letter;
+      svg.appendChild(textEl);
 
       const info = document.createElement('div');
       info.className = 'rune-info';

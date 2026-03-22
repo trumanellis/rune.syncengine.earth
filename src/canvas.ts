@@ -137,29 +137,18 @@ export function initCanvas(container: HTMLElement): SVGSVGElement {
       hitRect.setAttribute('fill', 'transparent');
       g.appendChild(hitRect);
 
-      if (styleDef.mode === 'path') {
-        const pathEl = createEl('path') as SVGPathElement;
-        pathEl.setAttribute('d', rune.path);
-        pathEl.style.stroke = runeColor;
-        pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
-        pathEl.setAttribute('stroke-linecap', 'round');
-        pathEl.setAttribute('stroke-linejoin', 'round');
-        pathEl.setAttribute('fill', 'none');
-        g.appendChild(pathEl);
-      } else {
-        const text = createEl('text') as SVGTextElement;
-        text.setAttribute('x', '40');
-        text.setAttribute('y', '80');
-        text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('dominant-baseline', 'central');
-        text.setAttribute('font-size', '112');
-        text.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-        text.style.fill = styleDef.fill === 'none' ? 'none' : runeColor;
-        text.style.stroke = styleDef.stroke === 'none' ? 'none' : runeColor;
-        text.setAttribute('stroke-width', styleDef.strokeWidth);
-        text.textContent = rune.letter;
-        g.appendChild(text);
-      }
+      const text = createEl('text') as SVGTextElement;
+      text.setAttribute('x', '40');
+      text.setAttribute('y', '80');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'central');
+      text.setAttribute('font-size', '112');
+      text.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
+      text.style.fill = styleDef.fill === 'none' ? 'none' : runeColor;
+      text.style.stroke = styleDef.stroke === 'none' ? 'none' : runeColor;
+      text.setAttribute('stroke-width', styleDef.strokeWidth);
+      text.textContent = rune.letter;
+      g.appendChild(text);
 
       // Click to select — drag end already calls selectLayer,
       // so just stop propagation to prevent canvas deselect

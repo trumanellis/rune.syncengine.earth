@@ -94,29 +94,18 @@ export function initSidebarRight(container: HTMLElement): void {
 
       if (rune) {
         const styleDef = RUNE_STYLES.find(s => s.id === state.runeStyle) ?? RUNE_STYLES[0];
-        if (styleDef.mode === 'path') {
-          const pathEl = document.createElementNS(svgNS, 'path');
-          pathEl.setAttribute('d', rune.path);
-          pathEl.style.stroke = 'var(--gold)';
-          pathEl.setAttribute('stroke-width', styleDef.strokeWidth);
-          pathEl.setAttribute('stroke-linecap', 'round');
-          pathEl.setAttribute('stroke-linejoin', 'round');
-          pathEl.setAttribute('fill', 'none');
-          svg.appendChild(pathEl);
-        } else {
-          const textEl = document.createElementNS(svgNS, 'text');
-          textEl.setAttribute('x', '40');
-          textEl.setAttribute('y', '80');
-          textEl.setAttribute('text-anchor', 'middle');
-          textEl.setAttribute('dominant-baseline', 'central');
-          textEl.setAttribute('font-size', '90');
-          textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
-          textEl.style.fill = styleDef.fill;
-          textEl.style.stroke = styleDef.stroke;
-          textEl.setAttribute('stroke-width', styleDef.strokeWidth);
-          textEl.textContent = rune.letter;
-          svg.appendChild(textEl);
-        }
+        const textEl = document.createElementNS(svgNS, 'text');
+        textEl.setAttribute('x', '40');
+        textEl.setAttribute('y', '80');
+        textEl.setAttribute('text-anchor', 'middle');
+        textEl.setAttribute('dominant-baseline', 'central');
+        textEl.setAttribute('font-size', '90');
+        textEl.setAttribute('font-family', 'font' in styleDef ? styleDef.font : "'Noto Sans Runic', sans-serif");
+        textEl.style.fill = styleDef.fill;
+        textEl.style.stroke = styleDef.stroke;
+        textEl.setAttribute('stroke-width', styleDef.strokeWidth);
+        textEl.textContent = rune.letter;
+        svg.appendChild(textEl);
       }
 
       // Layer name
