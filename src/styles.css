@@ -181,6 +181,12 @@ body {
   transition: opacity var(--transition-fast);
 }
 
+.toolbar-brand .brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
 .toolbar-brand .brand-link-home {
   display: flex;
   align-items: center;

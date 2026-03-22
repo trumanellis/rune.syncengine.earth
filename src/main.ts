@@ -160,11 +160,15 @@ const brand = document.createElement('div');
 brand.className = 'toolbar-brand';
 brand.innerHTML = `<a href="https://rune.syncengine.earth" class="brand-link brand-link-home" title="BindRune Editor">
   <img src="/Logo.svg" alt="" class="brand-logo" />
-  <span class="brand-name">ᛒindᚱune</span>
 </a>
-<a href="https://syncengine.earth" class="brand-link brand-link-parent" title="Back to Synchronicity Engine">
-  <span class="brand-subtitle">Synchronicity Engine</span>
-</a>`;
+<div class="brand-text">
+  <a href="https://rune.syncengine.earth" class="brand-link brand-link-home" title="BindRune Editor">
+    <span class="brand-name">ᛒindᚱune</span>
+  </a>
+  <a href="https://syncengine.earth" class="brand-link brand-link-parent" title="Back to Synchronicity Engine">
+    <span class="brand-subtitle">Synchronicity Engine</span>
+  </a>
+</div>`;
 toolbarEl.appendChild(brand);
 
 // Build toolbar
